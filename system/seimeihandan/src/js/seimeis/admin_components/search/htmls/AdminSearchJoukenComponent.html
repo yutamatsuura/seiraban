@@ -1,0 +1,42 @@
+<div>
+    <fieldset>
+        <legend>検索条件</legend>
+        <fieldset>
+            <legend>画数</legend>
+            <input type='text' v-model=kakusu>
+
+            <div>
+                <input type="checkbox" v-model='oldKakusu'>旧字体の画数も検索対象に含める
+            </div>
+        </fieldset>
+        <fieldset>
+            <legend>カナ</legend>
+            <input type='text' v-model='kana'>
+            <div>
+                <input type="checkbox" v-model='needKana'>カナがある文字だけ表示
+            </div>
+        </fieldset>
+        <fieldset>
+            <legend>その他</legend>
+            <div>
+                五行：
+                <select v-model='selectGogyou'>
+                    <option v-for='(key,value) of gogyous' :value='value'>
+                        {{key}}
+                    </option>
+                </select>
+            </div>
+            <div>
+                字体：
+                <select v-model='selectType'>
+                    <option v-for='(key,value) of types' :value='value'>
+                        {{key}}
+                    </option>
+                </select>
+            </div>
+        </fieldset>
+    </fieldset>
+    <div>
+        件数：{{count}}
+    </div>
+</div>

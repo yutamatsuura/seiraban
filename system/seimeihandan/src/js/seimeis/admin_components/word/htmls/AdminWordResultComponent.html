@@ -1,0 +1,8 @@
+<div v-if='view' class='admin'>
+    <div>
+        <button @click='registButton'>登録</button>
+        <button @click='deleteButton'>削除</button>
+    </div>
+    <admin-ng-word-component :word='info.word' :ngwords='info.ngwords' ref='adminNgWordComponent'>
+    </admin-ng-word-component>
+</div>

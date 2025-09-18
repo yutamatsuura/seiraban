@@ -1,0 +1,10 @@
+<div>
+    姓：<input type='text' v-model=sei v-on:keyup.enter="submitKantei">
+    名：<input type='text' v-model=mei v-on:keyup.enter="submitKantei">
+    <span class='button oisuta' @click='submitKantei'>
+        <a href='#'>姓名鑑定</a>
+    </span>
+    <p>
+        {{error}}
+    </p>
+</div>

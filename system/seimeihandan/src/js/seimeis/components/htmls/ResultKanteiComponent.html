@@ -1,0 +1,37 @@
+<div v-if='view'>
+    <div>
+        <h3>鑑定の結果</h3>
+    </div>
+    <h4>総評</h4>
+    <table class='souhyou' border='0'>
+        <tr>
+            <td class='score'>
+                <div class='my_score'>
+                    {{totalScore}}点
+                </div>        
+                <div class='score_max'>
+                        /100
+                </div>
+            </td>
+            <td class='message'>
+                {{totalMessage}}
+            </td>
+        </tr>
+    </table>
+
+
+    <kantei-table-component title='文字による鑑定' :kanteis='yomikudashis'>
+    </kantei-table-component>
+
+    <kantei-table-component title='陰陽による鑑定' :kanteis='youins'>
+    </kantei-table-component>
+
+    <kantei-table-component title='五行による鑑定' :kanteis='gogyous'>
+    </kantei-table-component>
+
+    <kantei-table-component title='画数による鑑定' :kanteis='kakusus'>
+    </kantei-table-component>
+
+    <kantei-table-component title='天地による鑑定' :kanteis='tentis'>
+    </kantei-table-component>
+</div>

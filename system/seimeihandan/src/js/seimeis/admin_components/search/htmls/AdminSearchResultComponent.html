@@ -1,0 +1,39 @@
+<table border='1' v-if='0 < items.length'  class='admin'>
+    <tr>
+        <th>文字</th>
+        <th>五行</th>
+        <th>画数</th>
+        <th>カナ</th>
+        <th>種別</th>     
+        <th>分離文字</th>
+        <th>登録</th>
+        <th>対応する旧字体</th>    
+        <th>旧字体の画数</th>       
+        <th>旧字体の種別</th>      
+    </tr>
+    <tr v-for='item in items'>
+        <td><a :href='getLink(item)'>{{item.moji}}</a></td>
+        <td>{{gogyou(item)}}</td>
+        <td><input type='number' v-model='item.kakusu'></td>
+        <td><input type='text' v-model='item.kana'></td>
+        <td>
+            <select v-model='item.type'>
+                <option v-for='(key,value) of types' :value='value'>
+                    {{key}}
+                </option>
+            </select>
+        </td>
+        <td>
+            <input type='checkbox' v-model='item.isBunri'><label>分離文字</label>
+        </td>
+        <td><button @click='submitModify(item)'>登録</button></td>
+        <td><a :href='getOldLink(item)'>{{item.oldmoji}}</a></td>
+        <td>
+            <span v-if='0 < item.oldKakusu'>{{item.oldKakusu}}</span>
+            <span v-else></span>
+        </td>
+        <td>
+                {{types[item.oldType]}}
+        </td>
+    </tr>
+</table>

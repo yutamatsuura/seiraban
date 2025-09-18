@@ -1,0 +1,23 @@
+<fieldset>
+    <legend>読み下し</legend>
+    <span class='ngword' v-for='(group,i) in checkOnlys'>
+        <div v-for='(ngword,j) in group'>
+            <input type='checkbox' v-model='ngword.checked'>
+            <label>{{ngword.jp}}</label>
+        </div>
+    </span>
+    <br />
+    <div v-for='ngword in customs'>
+        <div>
+            <input type='checkbox' v-model='ngword.checked'>
+            <label>{{ngword.jp}}</label>
+            <textarea placeholder='ここに文章を入力した場合、規定の文章を上書きして表示されます。' v-model='ngword.sp' class='ngwordArea'
+                v-if='ngword.checked'></textarea>
+        </div>
+    </div>
+    <div>
+        <h5>注意事項</h5>
+        <li>「地行がハやマ行」は漢字の読みから自動的にコメントを表示するか判定されます。</li>
+        <li>「地行が９画」は漢字の画数から自動的にコメントを表示するか判定されます。</li>
+    </div>
+</fieldset>

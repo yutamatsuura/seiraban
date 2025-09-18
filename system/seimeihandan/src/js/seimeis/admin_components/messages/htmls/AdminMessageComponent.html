@@ -1,0 +1,30 @@
+<div>
+    <div v-for='(category,i) in categorys'>
+        <h2>{{category.jp}}
+            <button @click='toggleShow(i)'>{{toggleText(i)}}</button>
+        </h2>
+
+        <div v-for='sub in category.subs' v-if='category.view'>
+            <h3>{{sub.jp}}</h3>
+            <span v-if='sub.viewscore'>
+                <label>点数</label>    
+                <input type='number' v-model='sub.score' max=100 min=-100>
+            </span>
+            <button @click='submitModify(sub)'>登録</button>
+            <br />
+            <div v-if='sub.viewmsg1'>
+                <label>{{sub.titlemsg1}}</label>
+                <br />
+                <textarea class='admin_message' v-model='sub.msg1'></textarea>
+            </div>
+            <div v-if='sub.viewmsg2'>
+                <label>{{sub.titlemsg2}}</label>
+                <br />
+                <textarea class='admin_message' v-model='sub.msg2'></textarea>
+            </div>
+            <div v-if='sub.viewmsg1==false&&sub.viewmsg2==false'>
+                ※この項目はメッセージ編集できません。
+            </div>
+        </div>
+    </div>
+</div>

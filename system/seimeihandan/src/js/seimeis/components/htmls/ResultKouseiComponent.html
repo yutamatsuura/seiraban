@@ -1,0 +1,55 @@
+<div v-if='view'>
+    <div>
+        <h3>文字の構成</h3>
+        <table class='kousei'>
+            <tr>
+                <th class='none'></th>
+                <th v-for='chara in seimei.all'>
+                    {{chara.name}}
+                </th>
+            </tr>
+            <tr>
+                <th>画数</th>
+                <td v-for='chara in seimei.all'>
+                    {{chara.kakusu}}
+                </td>
+            </tr>
+            <tr>
+                <th>五行</th>
+                <td v-for='chara in seimei.all' :class='getGogyouClass(chara)'>
+                    {{chara.gogyou.jp}}
+                </td>
+            </tr>
+            <tr>
+                <th>陽陰</th>
+                <td v-for='chara in seimei.all' :class='getYouinClass(chara)'>
+                    {{chara.youin.jp}}
+                </td>
+            </tr>
+            <tr>
+                <th>天格</th>
+                <td v-for='kaku in tenkakus' :colspan='kaku.colspan' :class='kaku.backclass'>
+                    {{kaku.kakusu}}
+                </td>
+            </tr>
+            <tr>
+                <th>人格</th>
+                <td v-for='kaku in jinkakus' :colspan='kaku.colspan' :class='kaku.backclass'>
+                    {{kaku.kakusu}}
+                </td>
+            </tr>
+            <tr>
+                <th>地格</th>
+                <td v-for='kaku in tikakus' :colspan='kaku.colspan' :class='kaku.backclass'>
+                    {{kaku.kakusu}}
+                </td>
+            </tr>
+            <tr>
+                <th>総画</th>
+                <td v-for='kaku in soukakus' :colspan='kaku.colspan' :class='kaku.backclass'>
+                    {{kaku.kakusu}}
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>

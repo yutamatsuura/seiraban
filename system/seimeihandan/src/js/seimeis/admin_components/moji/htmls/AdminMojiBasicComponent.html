@@ -1,0 +1,23 @@
+<fieldset>
+    <legend>基本</legend>
+    <div>
+        読み：<input type='text' v-model='info.kana'>
+        <span>
+            五行：{{getGogyou}}
+        </span>
+    </div>
+    <div>
+        画数：<input type='number' v-model='info.kakusu'>
+    </div>   
+    <div>
+        文字の種別：
+        <select v-model='info.type'>
+            <option v-for='(key,value) of types' :value='value'>
+                {{key}}
+            </option>
+        </select>
+    </div>
+    <div>
+        <input type='checkbox' v-model='info.isBunri'><label>分離文字</label>
+    </div>
+</fieldset>

@@ -1,0 +1,11 @@
+<fieldset>
+    <legend>旧字体</legend>
+    <div>
+        <label>対応する旧字体</label><input type='text' v-model='info.oldmoji'>
+        コード：<a :href=oldLink>{{oldCode}}</a>
+    </div>
+    <div>
+        <input type='checkbox' v-model='info.oldOverride'>
+        <label>画数書き換え有効</label>
+    </div>
+</fieldset>

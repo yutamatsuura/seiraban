@@ -1,0 +1,15 @@
+<div v-if='view' class='admin'>
+    <div>
+        <button @click='registButton'>登録</button>
+        <button @click='deleteButton'>削除</button>
+    </div>
+
+    <fieldset>
+        <admin-moji-basic-component :info='info'></admin-moji-basic-component>
+
+        <admin-moji-old-map-component :info='info'></admin-moji-old-map-component>
+
+        <admin-ng-word-component :word='info.moji' :ngwords='info.ngwords' ref='adminNgWordComponent'>
+        </admin-ng-word-component>
+    </fieldset>
+</div>

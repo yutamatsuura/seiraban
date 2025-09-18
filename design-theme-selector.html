@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>sindankantei - デザインテーマセレクター</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+            background: #fafafa;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .theme-selector {
+            max-width: 1200px;
+            margin: 3rem auto;
+            padding: 0 2rem;
+        }
+
+        .theme-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 3rem;
+            background: white;
+            border-radius: 50px;
+            padding: 8px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .theme-tab {
+            padding: 12px 24px;
+            border: none;
+            background: transparent;
+            color: #666;
+            font-size: 1rem;
+            font-weight: 500;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .theme-tab.active {
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .theme-tab:hover {
+            transform: translateY(-1px);
+        }
+
+        .theme-tab.traditional.active {
+            background: linear-gradient(135deg, #8e44ad, #9b59b6);
+            box-shadow: 0 4px 15px rgba(142, 68, 173, 0.3);
+        }
+
+        .theme-tab.modern.active {
+            background: linear-gradient(135deg, #2980b9, #3498db);
+            box-shadow: 0 4px 15px rgba(41, 128, 185, 0.3);
+        }
+
+        .theme-tab.natural.active {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+        }
+
+        .theme-tab.professional.active {
+            background: linear-gradient(135deg, #34495e, #2c3e50);
+            box-shadow: 0 4px 15px rgba(52, 73, 94, 0.3);
+        }
+
+        .theme-content {
+            display: none;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        .theme-content.active {
+            display: block;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .theme-overview {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+            border: 1px solid #f0f0f0;
+        }
+
+        .color-palette {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+
+        .color-item {
+            text-align: center;
+            min-width: 100px;
+        }
+
+        .color-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin: 0 auto 0.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border: 3px solid white;
+        }
+
+        .mockup-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .mockup-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+            border: 1px solid #f0f0f0;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .mockup-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 16px 48px rgba(0,0,0,0.15);
+        }
+
+        .mockup-card h3 {
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .login-mockup {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 1rem 0;
+            position: relative;
+            min-height: 300px;
+        }
+
+        .form-mockup {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 1rem 0;
+            min-height: 400px;
+        }
+
+        .pdf-mockup {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            min-height: 350px;
+            position: relative;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            margin: 0.5rem 0;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: none;
+        }
+
+        .btn-primary {
+            color: white;
+        }
+
+        .font-display {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        /* Traditional Theme Colors */
+        .traditional .color-primary { background: #8e44ad; }
+        .traditional .color-secondary { background: #f39c12; }
+        .traditional .color-accent { background: #ffffff; }
+        .traditional .color-text { background: #2c3e50; }
+        .traditional .color-bg { background: #faf6f5; }
+
+        .traditional .login-mockup {
+            background: linear-gradient(135deg, #8e44ad, #9b59b6);
+            color: white;
+        }
+        .traditional .btn-primary {
+            background: #f39c12;
+            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
+        }
+        .traditional .pdf-mockup {
+            border-color: #8e44ad;
+            background: linear-gradient(to bottom, #faf6f5, #ffffff);
+        }
+
+        /* Modern Theme Colors */
+        .modern .color-primary { background: #2980b9; }
+        .modern .color-secondary { background: #95a5a6; }
+        .modern .color-accent { background: #ffffff; }
+        .modern .color-text { background: #2c3e50; }
+        .modern .color-bg { background: #f8f9fa; }
+
+        .modern .login-mockup {
+            background: linear-gradient(135deg, #2980b9, #3498db);
+            color: white;
+        }
+        .modern .btn-primary {
+            background: #95a5a6;
+            box-shadow: 0 4px 15px rgba(149, 165, 166, 0.3);
+        }
+        .modern .pdf-mockup {
+            border-color: #2980b9;
+            background: linear-gradient(to bottom, #f8f9fa, #ffffff);
+        }
+
+        /* Natural Theme Colors */
+        .natural .color-primary { background: #27ae60; }
+        .natural .color-secondary { background: #d35400; }
+        .natural .color-accent { background: #f5f3f0; }
+        .natural .color-text { background: #2c3e50; }
+        .natural .color-bg { background: #f9f7f4; }
+
+        .natural .login-mockup {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+        }
+        .natural .btn-primary {
+            background: #d35400;
+            box-shadow: 0 4px 15px rgba(211, 84, 0, 0.3);
+        }
+        .natural .pdf-mockup {
+            border-color: #27ae60;
+            background: linear-gradient(to bottom, #f9f7f4, #f5f3f0);
+        }
+
+        /* Professional Theme Colors */
+        .professional .color-primary { background: #34495e; }
+        .professional .color-secondary { background: #bdc3c7; }
+        .professional .color-accent { background: #ffffff; }
+        .professional .color-text { background: #2c3e50; }
+        .professional .color-bg { background: #f4f6f7; }
+
+        .professional .login-mockup {
+            background: linear-gradient(135deg, #34495e, #2c3e50);
+            color: white;
+        }
+        .professional .btn-primary {
+            background: #bdc3c7;
+            color: #2c3e50;
+            box-shadow: 0 4px 15px rgba(189, 195, 199, 0.3);
+        }
+        .professional .pdf-mockup {
+            border-color: #34495e;
+            background: linear-gradient(to bottom, #f4f6f7, #ffffff);
+        }
+
+        .mockup-elements {
+            position: relative;
+        }
+
+        .form-group {
+            margin: 1rem 0;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .pdf-header {
+            text-align: center;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .pdf-content {
+            line-height: 1.6;
+            color: #444;
+        }
+
+        .japanese-elements {
+            display: flex;
+            justify-content: space-around;
+            margin: 1rem 0;
+            font-size: 1.5rem;
+        }
+
+        .theme-description {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 1rem 0;
+            border-left: 4px solid;
+        }
+
+        .traditional .theme-description { border-left-color: #8e44ad; }
+        .modern .theme-description { border-left-color: #2980b9; }
+        .natural .theme-description { border-left-color: #27ae60; }
+        .professional .theme-description { border-left-color: #34495e; }
+
+        .footer {
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 4rem;
+        }
+
+        @media (max-width: 768px) {
+            .theme-tabs {
+                flex-direction: column;
+                border-radius: 16px;
+            }
+            
+            .theme-tab {
+                border-radius: 12px;
+                margin: 2px 0;
+            }
+            
+            .mockup-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+
+        .recommendation {
+            background: linear-gradient(135deg, #3498db, #2ecc71);
+            color: white;
+            padding: 1rem;
+            border-radius: 12px;
+            margin: 1rem 0;
+            text-align: center;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>sindankantei</h1>
+        <p>鑑定書楽々作成ツール - デザインテーマセレクター</p>
+    </div>
+
+    <div class="theme-selector">
+        <div class="theme-tabs">
+            <button class="theme-tab traditional active" data-theme="traditional">
+                伝統和風
+            </button>
+            <button class="theme-tab modern" data-theme="modern">
+                モダン和風
+            </button>
+            <button class="theme-tab natural" data-theme="natural">
+                ナチュラル
+            </button>
+            <button class="theme-tab professional" data-theme="professional">
+                プロフェッショナル
+            </button>
+        </div>
+
+        <!-- Traditional Theme -->
+        <div class="theme-content traditional active" id="traditional">
+            <div class="theme-overview">
+                <h2>🎋 伝統和風テーマ</h2>
+                <div class="theme-description">
+                    <p><strong>コンセプト:</strong> 古典的な和の美意識を現代に。紫と金の高貴な色合いで、九星気学の神秘性と権威性を表現。格式高い鑑定書で顧客の信頼を獲得します。</p>
+                </div>
+                
+                <h3>🎨 カラーパレット</h3>
+                <div class="color-palette">
+                    <div class="color-item">
+                        <div class="color-circle color-primary"></div>
+                        <small>メイン<br>#8e44ad</small>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-circle color-secondary"></div>
+                        <small>アクセント<br>#f39c12</small>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-circle color-accent"></div>
+                        <small>背景<br>#ffffff</small>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-circle color-text"></div>
+                        <small>テキスト<br>#2c3e50</small>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-circle color-bg"></div>
+                        <small>ベース<br>#faf6f5</small>
+                    </div>
+                </div>
+
+                <h3>📝 フォント指定</h3>
+                <div class="font-display">
+                    <strong>メインフォント:</strong> 游明朝, YuMincho, Georgia, serif<br>
+                    <strong>UIフォント:</strong> Hiragino Sans, メイリオ, sans-serif<br>
+                    <strong>特徴:</strong> 格調高い明朝体で権威性を演出
+                </div>
+
+                <div class="recommendation">
+                    👑 おすすめポイント: 老舗の鑑定所、格式を重んじる鑑定士向け。顧客により高級感のある印象を与えます。
+                </div>
+            </div>
+
+            <div class="mockup-grid">
+                <div class="mockup-card">
+                    <h3>🔐 ログイン画面</h3>
+                    <div class="login-mockup">
+                        <div style="text-align: center; padding: 2rem;">
+                            <h2 style="margin-bottom: 2rem; font-family: serif;">鑑定師専用ログイン</h2>
+                            <div class="japanese-elements">⭐ 📿 🏮</div>
+                            <div class="form-group">
+                                <input type="email" class="input-field" placeholder="メールアドレス" style="background: rgba(255,255,255,0.9);">
+                            </div>
+                            <div class="form-group">
+                                <input type="password" class="input-field" placeholder="パスワード" style="background: rgba(255,255,255,0.9);">
+                            </div>
+                            <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                                ログイン
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mockup-card">
+                    <h3>📋 鑑定書作成フォーム</h3>
+                    <div class="form-mockup">
+                        <div class="form-group">
+                            <label class="form-label">👤 お客様お名前</label>
+                            <input type="text" class="input-field" placeholder="山田　太郎">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">🗓️ 生年月日</label>
+                            <input type="date" class="input-field">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">⚥ 性別</label>
+                            <select class="input-field">
+                                <option>男性</option>
+                                <option>女性</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">🏮 九星</label>
+                            <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; color: #8e44ad; font-weight: bold;">
+                                一白水星 - 自動計算結果
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                            ✨ 鑑定書生成
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mockup-card">
+                    <h3>📜 PDF鑑定書レイアウト</h3>
+                    <div class="pdf-mockup">
+                        <div class="pdf-header">
+                            <h3 style="color: #8e44ad; font-family: serif;">九星気学鑑定書</h3>
+                            <div class="japanese-elements">🌟 ⭐ 🔯</div>
+                        </div>
+                        <div class="pdf-content">
+                            <p><strong>お客様:</strong> 山田　太郎 様</p>
+                            <p><strong>生年月日:</strong> 昭和60年3月15日</p>
+                            <p><strong>本命星:</strong> <span style="color: #8e44ad; font-weight: bold;">一白水星</span></p>
+                            <hr style="margin: 1rem 0; border-color: #f39c12;">
+                            <h4 style="color: #8e44ad;">◆ 総合運勢</h4>
+                            <p>一白水星の方は、知恵と直感に恵まれ、困難な状況でも冷静に対処できる運命をお持ちです...</p>
+                            <h4 style="color: #8e44ad; margin-top: 1rem;">◆ 吉方位</h4>
+                            <p>今月の吉方位は <strong style="color: #f39c12;">東南</strong> です。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modern Theme -->
+        <div class="theme-content modern" id="modern">
+            <div class="theme-overview">
+                <h2>🏙️ モダン和風テーマ</h2>
+                <div class="theme-description">
+                    <p><strong>コンセプト:</strong> 伝統的な九星気学を現代的にアップデート。藍色とグレーの洗練された色調で、プロフェッショナルかつアクセシブルな印象を演出。</p>
+                </div>
+                
+                <h3>🎨 カラーパレット</h3>
+                <div class="color-palette">
+                    <div class="color-item">
+                        <div class="color-circle color-primary"></div>
+                        <small>メイン<br>#2980b9</small>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-circle color-secondary"></div>
+                        <small>アクセント<br>#95a5a6</small>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-circle color-accent"></div>
+                        <small>背景<br>#ffffff</small>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-circle color-text"></div>
+                        <small>テキスト<br>#2c3e50</small>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-circle color-bg"></div>
+                        <small>ベース<br>#f8f9fa</small>
+                    </div>
+                </div>
+
+                <h3>📝 フォント指定</h3>
+                <div class="font-display">
+                    <strong>メインフォント:</strong> Noto Sans JP, Helvetica Neue, Arial, sans-serif<br>
+                    <strong>UIフォント:</strong> system-ui, -apple-system, sans-serif<br>
+                    <strong>特徴:</strong> 現代的なゴシック体で親しみやすさと信頼性を両立
+                </div>
+
+                <div class="recommendation">
+                    🚀 おすすめポイント: 現代的な鑑定士、IT活用に積極的な事業者向け。幅広い年齢層に好まれるデザイン。
+                </div>
+            </div>
+
+            <div class="mockup-grid">
+                <div class="mockup-card">
+                    <h3>🔐 ログイン画面</h3>
+                    <div class="login-mockup">
+                        <div style="text-align: center; padding: 2rem;">
+                            <h2 style="margin-bottom: 2rem;">sindankantei</h2>
+                            <div class="japanese-elements">🔷 💎 ⚡</div>
+                            <div class="form-group">
+                                <input type="email" class="input-field" placeholder="メールアドレス" style="background: rgba(255,255,255,0.95);">
+                            </div>
+                            <div class="form-group">
+                                <input type="password" class="input-field" placeholder="パスワード" style="background: rgba(255,255,255,0.95);">
+                            </div>
+                            <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                                ログイン
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mockup-card">
+                    <h3>📋 鑑定書作成フォーム</h3>
+                    <div class="form-mockup">
+                        <div class="form-group">
+                            <label class="form-label">👤 お客様お名前</label>
+                            <input type="text" class="input-field" placeholder="山田　太郎">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">📅 生年月日</label>
+                            <input type="date" class="input-field">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">⚥ 性別</label>
+                            <select class="input-field">
+                                <option>男性</option>
+                                <option>女性</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">💫 計算結果</label>
+                            <div style="background: #e3f2fd; padding: 1rem; border-radius: 8px; color: #2980b9; font-weight: bold; border-left: 4px solid #2980b9;">
+                                一白水星 | 総画数: 23画 | 運勢良好
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                            📊 鑑定書生成
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mockup-card">
+                    <h3>📄 PDF鑑定書レイアウト</h3>
+                    <div class="pdf-mockup">
+                        <div class="pdf-header">
+                            <h3 style="color: #2980b9; font-weight: 300;">九星気学・姓名判断 総合鑑定書</h3>
+                            <div class="japanese-elements">📊 📈 💼</div>
+                        </div>
+                        <div class="pdf-content">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                                <div><strong>お客様:</strong> 山田　太郎 様</div>
+                                <div><strong>鑑定日:</strong> 2024年3月15日</div>
+                            </div>
+                            <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin: 1rem 0;">
+                                <strong style="color: #2980b9;">本命星:</strong> 一白水星<br>
+                                <strong style="color: #2980b9;">総画数:</strong> 23画（大吉）
+                            </div>
+                            <h4 style="color: #2980b9; border-bottom: 2px solid #ecf0f1; padding-bottom: 0.5rem;">総合運勢分析</h4>
+                            <p>データに基づく詳細な運勢分析により、あなたの潜在能力と開運の道筋をご案内いたします...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Natural Theme -->
+        <div class="theme-content natural" id="natural">
+            <div class="theme-overview">
+                <h2>🌿 ナチュラルテーマ</h2>
+                <div class="theme-description">
+                    <p><strong>コンセプト:</strong> 自然の調和を重んじる鑑定士に。緑と茶の温かみのある色調で、癒しの空間を演出し、お客様にリラックスして鑑定を受けていただけます。</p>
+                </div>
+                
+                <h3>🎨 カラーパレット</h3>
+                <div class="color-palette">
+                    <div class="color-item">
+                        <div class="color-circle color-primary"></div>
+                        <small>メイン<br>#27ae60</small>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-circle color-secondary"></div>
+                        <small>アクセント<br>#d35400</small>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-circle color-accent"></div>
+                        <small>背景<br>#f5f3f0</small>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-circle color-text"></div>
+                        <small>テキスト<br>#2c3e50</small>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-circle color-bg"></div>
+                        <small>ベース<br>#f9f7f4</small>
+                    </div>
+                </div>
+
+                <h3>📝 フォント指定</h3>
+                <div class="font-display">
+                    <strong>メインフォント:</strong> 筑紫A丸ゴシック, Rounded Mplus, Arial Rounded, sans-serif<br>
+                    <strong>UIフォント:</strong> system-ui, -apple-system, sans-serif<br>
+                    <strong>特徴:</strong> 丸みを帯びた優しいフォントで安心感を演出
+                </div>
+
+                <div class="recommendation">
+                    🌱 おすすめポイント: ヒーリング系、自然療法系の鑑定士向け。女性客や癒しを求める方に特に好まれます。
+                </div>
+            </div>
+
+            <div class="mockup-grid">
+                <div class="mockup-card">
+                    <h3>🔐 ログイン画面</h3>
+                    <div class="login-mockup">
+                        <div style="text-align: center; padding: 2rem;">
+                            <h2 style="margin-bottom: 2rem; font-weight: 400;">自然の導き</h2>
+                            <div class="japanese-elements">🌱 🍃 🌸</div>
+                            <div class="form-group">
+                                <input type="email" class="input-field" placeholder="メールアドレス" style="background: rgba(255,255,255,0.9); border-radius: 12px;">
+                            </div>
+                            <div class="form-group">
+                                <input type="password" class="input-field" placeholder="パスワード" style="background: rgba(255,255,255,0.9); border-radius: 12px;">
+                            </div>
+                            <button class="btn btn-primary" style="width: 100%; margin-top: 1rem; border-radius: 12px;">
+                                🌿 ログイン
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mockup-card">
+                    <h3>📋 鑑定書作成フォーム</h3>
+                    <div class="form-mockup">
+                        <div class="form-group">
+                            <label class="form-label">🌸 お客様のお名前</label>
+                            <input type="text" class="input-field" placeholder="山田　太郎" style="border-radius: 12px;">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">🗓️ お生まれの日</label>
+                            <input type="date" class="input-field" style="border-radius: 12px;">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">⚥ 性別</label>
+                            <select class="input-field" style="border-radius: 12px;">
+                                <option>男性</option>
+                                <option>女性</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">🌟 あなたの星</label>
+                            <div style="background: #e8f5e8; padding: 1rem; border-radius: 12px; color: #27ae60; font-weight: 600; border: 2px solid #a7e2a7;">
+                                🌊 一白水星 - 水のように清らかな心
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" style="width: 100%; margin-top: 1rem; border-radius: 12px;">
+                            🌸 鑑定書を作成
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mockup-card">
+                    <h3>📜 PDF鑑定書レイアウト</h3>
+                    <div class="pdf-mockup">
+                        <div class="pdf-header">
+                            <h3 style="color: #27ae60; font-weight: 400;">🌿 自然の流れに沿った人生鑑定書</h3>
+                            <div class="japanese-elements">🌸 🍃 🌺</div>
+                        </div>
+                        <div class="pdf-content">
+                            <div style="background: #f9f7f4; padding: 1.5rem; border-radius: 16px; margin: 1rem 0; border: 1px solid #e8f5e8;">
+                                <p><strong>お客様:</strong> 山田　太郎 様</p>
+                                <p><strong>お生まれ:</strong> 昭和60年3月15日</p>
+                                <p><strong>あなたの星:</strong> <span style="color: #27ae60; font-weight: bold;">🌊 一白水星</span></p>
+                            </div>
+                            <h4 style="color: #27ae60; margin-top: 1.5rem;">🌱 あなたの本質</h4>
+                            <p>一白水星の方は、澄んだ心と深い洞察力をお持ちです。自然の流れに身を任せることで、真の幸福を見つけることができるでしょう...</p>
+                            <h4 style="color: #d35400; margin-top: 1rem;">🧭 開運の方角</h4>
+                            <p>今月は <strong style="color: #d35400;">🌅 東南</strong> が吉方位です。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Professional Theme -->
+        <div class="theme-content professional" id="professional">
+            <div class="theme-overview">
+                <h2>💼 プロフェッショナルテーマ</h2>
+                <div class="theme-description">
+                    <p><strong>コンセプト:</strong> ビジネスライクな信頼性を重視。紺とシルバーの落ち着いた色調で、企業向け鑑定や経営コンサルティングにも対応できる格調高いデザイン。</p>
+                </div>
+                
+                <h3>🎨 カラーパレット</h3>
+                <div class="color-palette">
+                    <div class="color-item">
+                        <div class="color-circle color-primary"></div>
+                        <small>メイン<br>#34495e</small>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-circle color-secondary"></div>
+                        <small>アクセント<br>#bdc3c7</small>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-circle color-accent"></div>
+                        <small>背景<br>#ffffff</small>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-circle color-text"></div>
+                        <small>テキスト<br>#2c3e50</small>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-circle color-bg"></div>
+                        <small>ベース<br>#f4f6f7</small>
+                    </div>
+                </div>
+
+                <h3>📝 フォント指定</h3>
+                <div class="font-display">
+                    <strong>メインフォント:</strong> Times New Roman, 游明朝, serif<br>
+                    <strong>UIフォント:</strong> Helvetica Neue, Arial, sans-serif<br>
+                    <strong>特徴:</strong> 格調高いセリフ体で権威性と信頼性を強調
+                </div>
+
+                <div class="recommendation">
+                    🎯 おすすめポイント: ビジネス向け鑑定、企業コンサルティングを行う鑑定士向け。法人顧客に特に適しています。
+                </div>
+            </div>
+
+            <div class="mockup-grid">
+                <div class="mockup-card">
+                    <h3>🔐 ログイン画面</h3>
+                    <div class="login-mockup">
+                        <div style="text-align: center; padding: 2rem;">
+                            <h2 style="margin-bottom: 2rem; font-family: serif; font-weight: 300;">PROFESSIONAL KANTEI</h2>
+                            <div class="japanese-elements">⚖️ 📊 🎯</div>
+                            <div class="form-group">
+                                <input type="email" class="input-field" placeholder="メールアドレス" style="background: rgba(255,255,255,0.95); border: 1px solid rgba(255,255,255,0.3);">
+                            </div>
+                            <div class="form-group">
+                                <input type="password" class="input-field" placeholder="パスワード" style="background: rgba(255,255,255,0.95); border: 1px solid rgba(255,255,255,0.3);">
+                            </div>
+                            <button class="btn btn-primary" style="width: 100%; margin-top: 1rem; font-weight: 400;">
+                                LOGIN
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mockup-card">
+                    <h3>📋 鑑定書作成フォーム</h3>
+                    <div class="form-mockup">
+                        <div class="form-group">
+                            <label class="form-label">Client Name</label>
+                            <input type="text" class="input-field" placeholder="山田　太郎">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Date of Birth</label>
+                            <input type="date" class="input-field">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Gender</label>
+                            <select class="input-field">
+                                <option>Male / 男性</option>
+                                <option>Female / 女性</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Analysis Result</label>
+                            <div style="background: #ecf0f1; padding: 1rem; border-radius: 4px; color: #34495e; font-family: monospace; border-left: 4px solid #34495e;">
+                                PRIMARY STAR: 一白水星<br>
+                                NAME SCORE: 23 (EXCELLENT)<br>
+                                STATUS: ANALYSIS COMPLETE
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                            📊 GENERATE REPORT
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mockup-card">
+                    <h3>📄 PDF鑑定書レイアウト</h3>
+                    <div class="pdf-mockup">
+                        <div class="pdf-header">
+                            <h3 style="color: #34495e; font-family: serif; font-weight: 300;">PROFESSIONAL CONSULTING REPORT</h3>
+                            <div class="japanese-elements">📈 💼 ⚖️</div>
+                        </div>
+                        <div class="pdf-content">
+                            <table style="width: 100%; margin-bottom: 1rem; border-collapse: collapse;">
+                                <tr style="border-bottom: 1px solid #bdc3c7;">
+                                    <td style="padding: 0.5rem; font-weight: bold;">CLIENT:</td>
+                                    <td style="padding: 0.5rem;">山田　太郎 様</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #bdc3c7;">
+                                    <td style="padding: 0.5rem; font-weight: bold;">DATE:</td>
+                                    <td style="padding: 0.5rem;">March 15, 2024</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 0.5rem; font-weight: bold;">PRIMARY STAR:</td>
+                                    <td style="padding: 0.5rem; color: #34495e; font-weight: bold;">一白水星</td>
+                                </tr>
+                            </table>
+                            <h4 style="color: #34495e; font-family: serif; margin-top: 1rem; border-bottom: 2px solid #bdc3c7; padding-bottom: 0.5rem;">EXECUTIVE SUMMARY</h4>
+                            <p>Based on comprehensive analysis of Kyusei-Kigaku principles, the subject demonstrates strong analytical capabilities with strategic thinking patterns aligned with water element characteristics...</p>
+                            <h4 style="color: #34495e; font-family: serif; margin-top: 1rem;">RECOMMENDED DIRECTION</h4>
+                            <p><strong>OPTIMAL SECTOR:</strong> Southeast (東南)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>© 2024 sindankantei - 鑑定書楽々作成ツール</p>
+        <p>プロ鑑定士のためのオールインワン鑑定書作成システム</p>
+    </div>
+
+    <script>
+        // テーマ切り替え機能
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabs = document.querySelectorAll('.theme-tab');
+            const contents = document.querySelectorAll('.theme-content');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const theme = this.getAttribute('data-theme');
+                    
+                    // アクティブなタブとコンテンツをリセット
+                    tabs.forEach(t => t.classList.remove('active'));
+                    contents.forEach(c => c.classList.remove('active'));
+                    
+                    // 新しいタブとコンテンツをアクティブに
+                    this.classList.add('active');
+                    document.getElementById(theme).classList.add('active');
+                });
+            });
+
+            // ホバーエフェクト
+            const mockupCards = document.querySelectorAll('.mockup-card');
+            mockupCards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-5px) scale(1.02)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+
+            // スムーススクロール
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
