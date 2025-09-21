@@ -732,9 +732,5 @@ onMounted(() => {
       padding: 8px;
     }
   }
-
-    gap: 8px;
-  }
-
 }
 </style>
