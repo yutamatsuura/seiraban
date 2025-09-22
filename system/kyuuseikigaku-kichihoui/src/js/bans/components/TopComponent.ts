@@ -53,13 +53,13 @@ export default class TopComponent  extends Vue {
     }
 
     public submitBirthday()
-    {    
+    {
         localStorage.setItem(KibanConfig.YEAR, this.selectYear);
         localStorage.setItem(KibanConfig.MONTH, this.selectMonth);
         localStorage.setItem(KibanConfig.DAY, this.selectDay);
         localStorage.setItem(KibanConfig.SEX, this.selectSex);
-        
-        location.href = `/qsei/ban_birthday.php`;
+
+        location.href = `ban_birthday.html`;
     }
 
     public submitKipou()
@@ -68,7 +68,7 @@ export default class TopComponent  extends Vue {
         localStorage.setItem(KibanConfig.MONTH, this.selectMonth);
         localStorage.setItem(KibanConfig.DAY, this.selectDay);
         localStorage.setItem(KibanConfig.SEX, this.selectSex);
-    
-        location.href = `/qsei/ban_kipou.php`;
+
+        location.href = `ban_kipou.html`;
     }
 }

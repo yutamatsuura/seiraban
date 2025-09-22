@@ -1,0 +1,14 @@
+{
+  "name": "system-integration",
+  "version": "1.0.0",
+  "description": "Integration bridge for existing kyusei and seimei systems",
+  "main": "puppeteer_bridge.js",
+  "dependencies": {
+    "puppeteer": "^21.11.0"
+  },
+  "scripts": {
+    "install-puppeteer": "npm install puppeteer",
+    "test-kyusei": "node puppeteer_bridge.js kyusei '{\"birth_date\":\"1990-01-15\",\"gender\":\"male\"}'",
+    "test-seimei": "node puppeteer_bridge.js seimei '{\"name\":\"田中 太郎\"}'"
+  }
+}

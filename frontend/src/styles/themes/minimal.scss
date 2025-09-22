@@ -1,0 +1,59 @@
+// ミニマルテーマ - シンプルで洗練されたデザイン
+:root[data-theme="minimal"] {
+  // Primary colors - より淡く上品な色調
+  --primary-main: #2c3e50;
+  --primary-light: #4a5d73;
+  --primary-dark: #1a252f;
+
+  // Secondary colors
+  --secondary-main: #95a5a6;
+  --secondary-light: #bdc3c7;
+  --secondary-dark: #7f8c8d;
+
+  // Background colors - よりクリーンで明るい
+  --background-default: #ffffff;
+  --background-paper: #f8f9fa;
+  --background-dark: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);
+
+  // Text colors
+  --text-primary: #2c3e50;
+  --text-secondary: #7f8c8d;
+  --text-disabled: #bdc3c7;
+
+  // Border colors - より薄く
+  --border-color: #e9ecef;
+  --border-light: #f1f3f4;
+
+  // Shadows - より軽やか
+  --shadow-1: 0 1px 3px rgba(44, 62, 80, 0.08);
+  --shadow-2: 0 2px 6px rgba(44, 62, 80, 0.1);
+  --shadow-3: 0 4px 12px rgba(44, 62, 80, 0.12);
+  --shadow-large: 0 8px 24px rgba(44, 62, 80, 0.15);
+
+  // Spacing - より小さめでタイト
+  --spacing-xs: 3px;
+  --spacing-sm: 6px;
+  --spacing-md: 12px;
+  --spacing-lg: 18px;
+  --spacing-xl: 24px;
+  --spacing-2xl: 36px;
+
+  // Border radius - よりシャープ
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+
+  // Typography - よりコンパクト
+  --font-size-xs: 0.7rem;
+  --font-size-sm: 0.8rem;
+  --font-size-base: 0.9rem;
+  --font-size-lg: 1rem;
+  --font-size-xl: 1.1rem;
+  --font-size-2xl: 1.3rem;
+  --font-size-3xl: 1.6rem;
+  --font-size-4xl: 2rem;
+
+  --line-height-tight: 1.2;
+  --line-height-base: 1.4;
+  --line-height-relaxed: 1.6;
+}

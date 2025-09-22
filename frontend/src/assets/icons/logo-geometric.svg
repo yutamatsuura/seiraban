@@ -1,0 +1,27 @@
+<svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+  <!-- 幾何学的なロゴ - シンプルで洗練されたデザイン -->
+  <defs>
+    <linearGradient id="geomGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2c3e50"/>
+      <stop offset="100%" style="stop-color:#34495e"/>
+    </linearGradient>
+  </defs>
+
+  <!-- メインの六角形 -->
+  <polygon points="24,4 36,12 36,28 24,36 12,28 12,12"
+           fill="none"
+           stroke="url(#geomGradient)"
+           stroke-width="2"/>
+
+  <!-- 内側の三角形 -->
+  <polygon points="24,16 30,26 18,26"
+           fill="url(#geomGradient)"/>
+
+  <!-- 角のドット -->
+  <circle cx="24" cy="4" r="2" fill="#2c3e50"/>
+  <circle cx="36" cy="12" r="1.5" fill="#34495e"/>
+  <circle cx="36" cy="28" r="1.5" fill="#34495e"/>
+  <circle cx="24" cy="36" r="2" fill="#2c3e50"/>
+  <circle cx="12" cy="28" r="1.5" fill="#34495e"/>
+  <circle cx="12" cy="12" r="1.5" fill="#34495e"/>
+</svg>
