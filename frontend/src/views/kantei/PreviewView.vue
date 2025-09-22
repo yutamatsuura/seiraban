@@ -11,11 +11,11 @@
       <div class="action-buttons">
         <button
           @click="generatePDF"
-          :disabled="loading || !diagnosis"
+          :disabled="pdfGenerating || !diagnosis || (diagnosis.status !== 'completed' && diagnosis.status !== 'partial')"
           class="btn btn-primary"
         >
-          <span v-if="pdfGenerating">PDF生成中...</span>
-          <span v-else>PDF生成</span>
+          <span v-if="pdfGenerating">PDF出力中...</span>
+          <span v-else>PDF出力</span>
         </button>
         <button
           @click="toggleAdminMode"
@@ -34,21 +34,15 @@
       </div>
     </div>
 
-    <!-- Loading or Processing State -->
-    <div v-if="loading || (diagnosis && diagnosis.status === 'processing')" class="loading-container">
+    <!-- Loading or Processing State - 超シンプル版 -->
+    <div v-if="!diagnosis || (diagnosis.status !== 'completed' && diagnosis.status !== 'partial')" class="loading-container">
       <div class="loading-content">
         <div class="loading-spinner"></div>
         <div class="loading-text">
           <h2>鑑定を実行中です</h2>
           <p v-if="diagnosis">{{ diagnosis.client_name }} 様の鑑定結果を計算しています...</p>
-
-          <!-- プログレスバー -->
-          <div class="progress-bar-container">
-            <div class="progress-bar">
-              <div class="progress-fill" :style="{ width: Math.round(progressPercentage) + '%' }"></div>
-            </div>
-            <div class="progress-percentage">{{ Math.round(progressPercentage) }}%</div>
-          </div>
+          <p class="time-estimate">処理時間の目安：15〜30秒程度</p>
+          <p class="loading-dots">お待ちください<span class="dots"></span></p>
         </div>
       </div>
     </div>
@@ -61,7 +55,7 @@
     </div>
 
     <!-- Main Content - Only show when diagnosis is completed -->
-    <div v-else-if="diagnosis && diagnosis.status === 'completed'" class="diagnosis-content" id="diagnosis-report">
+    <div v-else-if="diagnosis && (diagnosis.status === 'completed' || diagnosis.status === 'partial')" class="diagnosis-content" id="diagnosis-report">
 
       <!-- Client Information -->
       <div class="card client-info">
@@ -365,8 +359,7 @@ const autoRefreshTimer = ref<number | null>(null)
 const stepProgress = ref(0)
 const adminMode = ref(false)
 
-// 新しい待機画面用の変数
-const progressPercentage = ref(0)
+// シンプルなローディング用の変数
 const remainingSeconds = ref(60)
 const currentStep = ref(0)
 const countdownTimer = ref<number | null>(null)
@@ -408,11 +401,29 @@ const loadDiagnosis = async () => {
     return
   }
 
-  loading.value = true
+  console.log('🎯 loadDiagnosis開始', {
+    diagnosisId: diagnosisId.value,
+    currentStatus: diagnosis.value?.status,
+    currentLoading: loading.value
+  })
+
+  // 完了状態の場合はloadingをtrueにしない（即座表示のため）
+  const wasCompleted = diagnosis.value?.status === 'completed' || diagnosis.value?.status === 'partial'
+  if (!wasCompleted) {
+    loading.value = true
+    // console.log('Loading状態をtrueに設定')
+  } else {
+    // console.log('既に完了状態のため、loading状態を変更しない')
+  }
   error.value = null
 
   try {
     const result = await apiClient.getDiagnosis(diagnosisId.value, adminMode.value)
+    console.log('📡 API応答受信:', {
+      status: result.status,
+      hasKyusei: !!result.kyusei_result,
+      hasSeimei: !!result.seimei_result
+    })
     diagnosis.value = result
 
     // ステップ進行状況を更新
@@ -421,7 +432,13 @@ const loadDiagnosis = async () => {
     console.error('Failed to load diagnosis:', err)
     error.value = err.message || '鑑定データの読み込みに失敗しました'
   } finally {
-    loading.value = false
+    // 通常の場合はloadingを解除、完了状態はupdeStepProgressで処理
+    if (!wasCompleted) {
+      loading.value = false
+      // console.log('finally: loading状態をfalseに設定')
+    } else {
+      // console.log('finally: 完了状態のため、loading状態を変更しない')
+    }
   }
 }
 
@@ -604,35 +621,12 @@ const availableCharacterKeys = computed(() => {
 })
 
 const updateStepProgress = (result: DiagnosisResult) => {
-  let progress = 0
-  let step = 0
-
-  // 九星気学が実際に完了していれば1ステップ進む
-  if (result.kyusei_result && result.kyusei_result.data) {
-    const kyuseiData = result.kyusei_result.data
-    // 本命星が「計算中」や「未取得」でなければ完了とみなす
-    if (kyuseiData.本命星 && kyuseiData.本命星 !== '計算中' && kyuseiData.本命星 !== '未取得') {
-      progress = 1
-      step = 1
-      progressPercentage.value = 50
-    }
+  // 診断が完了した時（completed または partial）は即座にプレビュー表示
+  if (result.status === 'completed' || result.status === 'partial') {
+    stopAutoRefresh()
+    loading.value = false
+    return
   }
-
-  // 姓名判断が実際に完了していれば2ステップ進む
-  // 診断が完全に完了した時のみステップ2を表示
-  if (result.status === 'completed' && result.seimei_result && result.seimei_result.data) {
-    const seimeiData = result.seimei_result.data
-    // 総評点数が存在すれば完了とみなす
-    if (seimeiData.総評点数 !== undefined && seimeiData.総評点数 !== null && seimeiData.総評点数 !== '未取得') {
-      progress = 2
-      step = 2
-      progressPercentage.value = 100
-    }
-  }
-
-  stepProgress.value = progress
-  currentStep.value = step
-  console.log('Step progress updated:', progress, result)
 }
 
 // 自動更新機能
@@ -647,7 +641,7 @@ const startAutoRefresh = () => {
     } else {
       stopAutoRefresh()
     }
-  }, 3000) // 3秒ごとに更新
+  }, 1000) // 1秒ごとに更新
 }
 
 const stopAutoRefresh = () => {
@@ -666,14 +660,14 @@ watch(() => diagnosis.value?.status, (newStatus) => {
   }
 })
 
-// 待機画面の開始処理
-const startLoadingAnimation = () => {
-  if (loading.value || (diagnosis.value && diagnosis.value.status === 'processing')) {
-    startProgressSimulation()
-    startCountdown()
-    rotateProcessDetail()
-  }
-}
+// loading状態の変更を監視
+watch(() => loading.value, (newLoading, oldLoading) => {
+  console.log('🔄 Loading状態変更:', oldLoading, '→', newLoading)
+})
+
+// シンプルローディングではプログレス監視不要
+
+// シンプルローディングではプログレスアニメーション不要
 
 // 待機画面のシミュレーション
 const startProgressSimulation = () => {
@@ -694,7 +688,7 @@ const startProgressSimulation = () => {
     } else if (!loading.value && (!diagnosis.value || diagnosis.value.status !== 'processing')) {
       clearInterval(progressInterval)
     }
-  }, 800)
+  }, 400) // 更新間隔を高速化（800ms→400ms）
 }
 
 // カウントダウンタイマー
@@ -720,8 +714,10 @@ const rotateProcessDetail = () => {
 }
 
 onMounted(() => {
+  console.log('🔥 PreviewView マウント開始', { diagnosisId: diagnosisId.value })
   loadDiagnosis()
-  startLoadingAnimation()
+  // startLoadingAnimationはwatchで呼ぶように変更
+  console.log('🔥 PreviewView マウント完了')
 })
 
 onUnmounted(() => {
@@ -1516,6 +1512,42 @@ onUnmounted(() => {
         font-size: 0.85rem;
       }
     }
+  }
+}
+
+// シンプルなローディング画面スタイル
+.time-estimate {
+  margin: 15px 0;
+  font-size: 14px;
+  color: #888;
+  font-style: italic;
+}
+
+.loading-dots {
+  margin-top: 20px;
+  font-size: 16px;
+  color: #666;
+
+  .dots::after {
+    content: '...';
+    animation: dots 1.5s infinite;
+  }
+}
+
+@keyframes dots {
+  0%, 20% {
+    color: transparent;
+    text-shadow: .25em 0 0 transparent, .5em 0 0 transparent;
+  }
+  40% {
+    color: #666;
+    text-shadow: .25em 0 0 transparent, .5em 0 0 transparent;
+  }
+  60% {
+    text-shadow: .25em 0 0 #666, .5em 0 0 transparent;
+  }
+  80%, 100% {
+    text-shadow: .25em 0 0 #666, .5em 0 0 #666;
   }
 }
 </style>

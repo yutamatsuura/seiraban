@@ -312,6 +312,7 @@ const resetForm = () => {
 const submitDiagnosis = async () => {
   if (!isFormValid.value || loading.value) return
 
+  console.log('🚀 鑑定開始ボタンが押されました')
   loading.value = true
   errorMessage.value = ''
   successMessage.value = ''
@@ -325,15 +326,21 @@ const submitDiagnosis = async () => {
       name_for_seimei: fullName // 姓名判断も自動的に実行
     }
 
+    console.log('📤 API呼び出し開始', request)
     const response = await apiClient.createDiagnosis(request)
+    console.log('📥 API呼び出し完了', response)
 
     if (response.success) {
+      console.log('✅ 鑑定作成成功 - ページ遷移開始', response.diagnosis_id)
       // すぐに結果ページに遷移
-      router.push(`/kantei/preview/${response.diagnosis_id}`)
+      await router.push(`/kantei/preview/${response.diagnosis_id}`)
+      console.log('✅ ページ遷移完了')
     } else {
+      console.error('❌ 鑑定作成失敗', response)
       errorMessage.value = '鑑定の開始に失敗しました'
     }
   } catch (error: any) {
+    console.error('❌ 鑑定開始エラー', error)
     errorMessage.value = error.message || '鑑定の開始に失敗しました'
   } finally {
     loading.value = false

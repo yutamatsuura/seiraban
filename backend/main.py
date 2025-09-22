@@ -1629,8 +1629,9 @@ async def process_diagnosis_db(record_id: int, birth_date: str, gender: str, nam
                                             all_entries.append((single_pos, single_char, single_detail))
                                             processed_positions.add(single_pos)
 
-                                # Step 2: 単一文字【評価】パターン（美 【地行が水行】）
-                                single_eval_pattern = r'(?<![・])([一-龯])(?![・])\s*\n?\s*【([^】]+)】\s*(.*?)(?=(?:[一-龯])\s\s|地行:|人格:|$)'
+                                # Step 2: 単一文字【評価】パターン（も 【地行が水行】）
+                                # より柔軟なパターンに修正：ひらがな・カタカナも対象とし、スペースの処理を改善
+                                single_eval_pattern = r'(?<![・])([一-龯あ-んア-ン])(?![・])\s*【([^】]+)】\s*(.*?)(?=(?:[一-龯あ-んア-ン])\s*【|陰陽による鑑定|五行による鑑定|画数による鑑定|天地による鑑定|$)'
                                 for match in re.finditer(single_eval_pattern, moji_content, re.DOTALL):
                                     if match.start() not in processed_positions:
                                         char = match.group(1)
@@ -1773,8 +1774,8 @@ async def process_diagnosis_db(record_id: int, birth_date: str, gender: str, nam
                                 # Step 1: エントリの開始位置を特定
                                 entry_positions = []
 
-                                # フルネーム 【五行のバランス】パターン
-                                for match in re.finditer(r'([一-龯]+ [一-龯]+)\s*【五行のバランス', gogyou_content):
+                                # フルネーム 【五行のバランス】パターン（ひらがな・カタカナ対応）
+                                for match in re.finditer(r'([一-龯あ-んア-ン]+ [一-龯あ-んア-ン]+)\s*【五行のバランス', gogyou_content):
                                     entry_positions.append((match.start(), 'fullname', match.group(1)))
 
                                 # 地格：文字列 【評価】パターン
@@ -1795,8 +1796,8 @@ async def process_diagnosis_db(record_id: int, birth_date: str, gender: str, nam
                                     segment = gogyou_content[start_pos:end_pos].strip()
 
                                     if entry_type == 'fullname':
-                                        # フルネーム 【五行のバランス(xxx)】詳細
-                                        match = re.match(r'([一-龯]+ [一-龯]+)\s*【(五行のバランス\([^)]+\))】\s*(.*)', segment, re.DOTALL)
+                                        # フルネーム 【五行のバランス(xxx)】詳細（ひらがな・カタカナ対応）
+                                        match = re.match(r'([一-龯あ-んア-ン]+ [一-龯あ-んア-ン]+)\s*【(五行のバランス\([^)]+\))】\s*(.*)', segment, re.DOTALL)
                                         if match:
                                             full_name = match.group(1)
                                             evaluation = match.group(2)
@@ -1821,6 +1822,13 @@ async def process_diagnosis_db(record_id: int, birth_date: str, gender: str, nam
                                             name_part = match.group(1)
                                             evaluation = match.group(2)
                                             detail = match.group(3).strip()
+
+                                            # フルネームパターンが混入している場合は除去
+                                            # 「松浦 もか【五行のバランス】...」のようなパターンを検出して除去
+                                            fullname_intrusion = re.search(r'([一-龯あ-んア-ン]+ [一-龯あ-んア-ン]+)\s*【', detail)
+                                            if fullname_intrusion:
+                                                detail = detail[:fullname_intrusion.start()].strip()
+
                                             if detail:
                                                 gogyou_kantei[f"人格:{name_part}"] = f"【{evaluation}】\n{detail}"
 
