@@ -63,6 +63,16 @@
             </div>
             <div v-if="nameValidationError" class="validation-error">
               {{ nameValidationError }}
+              <div v-if="nameSuggestion" class="name-suggestion">
+                <strong>推奨表記:</strong> {{ nameSuggestion }}
+                <button
+                  type="button"
+                  class="suggestion-button"
+                  @click="applySuggestion"
+                >
+                  この表記を使用
+                </button>
+              </div>
             </div>
           </div>
 
@@ -157,6 +167,8 @@ const loading = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
 const nameValidationError = ref('')
+const nameSuggestion = ref('')
+const suggestionType = ref<'lastName' | 'firstName' | null>(null)
 
 // 日本語文字のバリデーション関数
 const isValidJapanese = (text: string): boolean => {
@@ -170,6 +182,38 @@ const hasUnsupportedCharacters = (text: string): boolean => {
   // 姓名判断システムで問題になる可能性のある文字をチェック
   const problematicChars = ['ー', '々', '〆', '〇', '〈', '〉', '《', '》', '「', '」', '盧', '廬']
   return problematicChars.some(char => text.includes(char))
+}
+
+// 代替案生成関数
+const generateSuggestion = (text: string): string => {
+  const replacements: Record<string, string> = {
+    '々': '', // 々は除去して前の文字を繰り返し
+    'ー': '',
+    '〆': 'しめ',
+    '〇': '○',
+    '〈': '',
+    '〉': '',
+    '《': '',
+    '》': '',
+    '「': '',
+    '」': '',
+    '盧': '呂',
+    '廬': '庵'
+  }
+
+  let suggestion = text
+
+  // 々の特別処理（前の文字を繰り返し）
+  suggestion = suggestion.replace(/(.)\々/g, '$1$1')
+
+  // その他の文字の置換
+  for (const [from, to] of Object.entries(replacements)) {
+    if (from !== '々') { // 々は上で処理済み
+      suggestion = suggestion.replace(new RegExp(from, 'g'), to)
+    }
+  }
+
+  return suggestion
 }
 
 // より詳細な文字バリデーション
@@ -198,6 +242,21 @@ const validateInput = (field: 'lastName' | 'firstName', event: Event) => {
   const validationMessage = getCharacterValidationMessage(value)
   nameValidationError.value = validationMessage
 
+  // 代替案生成
+  if (hasUnsupportedCharacters(value)) {
+    const suggestion = generateSuggestion(value)
+    if (suggestion !== value && suggestion.trim() !== '') {
+      nameSuggestion.value = suggestion
+      suggestionType.value = field
+    } else {
+      nameSuggestion.value = ''
+      suggestionType.value = null
+    }
+  } else {
+    nameSuggestion.value = ''
+    suggestionType.value = null
+  }
+
   // 基本的な日本語文字以外を削除（ただし問題のある文字は残す）
   if (!isValidJapanese(value) && value !== '') {
     // 完全に無効な文字（アルファベット、数字など）のみ削除
@@ -224,6 +283,16 @@ const isFormValid = computed(() => {
   return hasBasicInfo && hasValidCharacters
 })
 
+// 代替案適用
+const applySuggestion = () => {
+  if (nameSuggestion.value && suggestionType.value) {
+    form.value[suggestionType.value] = nameSuggestion.value
+    nameSuggestion.value = ''
+    suggestionType.value = null
+    nameValidationError.value = ''
+  }
+}
+
 // フォームリセット
 const resetForm = () => {
   form.value = {
@@ -235,6 +304,8 @@ const resetForm = () => {
   errorMessage.value = ''
   successMessage.value = ''
   nameValidationError.value = ''
+  nameSuggestion.value = ''
+  suggestionType.value = null
 }
 
 // 鑑定開始
@@ -529,6 +600,36 @@ const submitDiagnosis = async () => {
   font-size: 0.75rem;
   color: #e74c3c;
   font-weight: 500;
+}
+
+.name-suggestion {
+  margin-top: 12px;
+  padding: 12px;
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 6px;
+  color: #856404;
+
+  .suggestion-button {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    margin-left: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background: #0056b3;
+    }
+
+    &:focus {
+      outline: 2px solid #80bdff;
+      outline-offset: 2px;
+    }
+  }
 }
 
 @keyframes spin {
