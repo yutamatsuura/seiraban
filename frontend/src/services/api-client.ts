@@ -40,7 +40,9 @@ export interface TemplateSettings {
   operator_name: string
   color_theme: string
   font_family: string
+  font_size?: string
   layout_style: string
+  design_pattern?: string
   custom_css?: string
   settings_version: string
   created_at: string
@@ -52,7 +54,9 @@ export interface TemplateSettingsRequest {
   operator_name: string
   color_theme: string
   font_family: string
+  font_size?: string
   layout_style: string
+  design_pattern?: string
   custom_css?: string
 }
 
@@ -61,8 +65,11 @@ export interface TemplateSettingsUpdate {
   operator_name?: string
   color_theme?: string
   font_family?: string
+  font_size?: string
   layout_style?: string
+  design_pattern?: string
   custom_css?: string
+  logo_url?: string
 }
 
 export interface LogoUploadResponse {
@@ -119,17 +126,17 @@ export interface RegistrationResponse {
   email: string
 }
 
-// HTTP client class
+// HTTP client class using user store for authentication
 class ApiClient {
   private baseURL: string
-  private token?: string
 
   constructor(baseURL: string) {
     this.baseURL = baseURL
   }
 
   setToken(token: string) {
-    this.token = token
+    // This method is kept for compatibility but the actual token is managed by user store
+    console.warn('setToken is deprecated. Use user store for authentication.')
   }
 
   private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
@@ -139,8 +146,12 @@ class ApiClient {
       ...(options?.headers as Record<string, string>),
     }
 
-    if (this.token) {
-      headers.Authorization = `Bearer ${this.token}`
+    // Get token from user store
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('auth_token')
+      if (token) {
+        headers.Authorization = `Bearer ${token}`
+      }
     }
 
     const response = await fetch(url, {
@@ -224,8 +235,12 @@ class ApiClient {
     const url = `${this.baseURL}/api/template/upload-logo`
     const headers: Record<string, string> = {}
 
-    if (this.token) {
-      headers.Authorization = `Bearer ${this.token}`
+    // Get token from localStorage like other methods
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('auth_token')
+      if (token) {
+        headers.Authorization = `Bearer ${token}`
+      }
     }
 
     const response = await fetch(url, {

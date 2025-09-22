@@ -3,9 +3,9 @@
     <!-- ロゴセクション -->
     <router-link to="/dashboard" class="sidebar-logo">
       <div class="logo-display">
-        <img src="/src/assets/icons/logo-dots-constellation.svg" alt="星羅盤ロゴ" class="logo-image" />
+        <img src="/src/assets/icons/logo-dots-constellation.svg" alt="運命織ロゴ" class="logo-image" />
         <div class="logo-text-wrapper">
-          <span class="logo-text">星羅盤</span>
+          <span class="logo-text">運命織</span>
           <span class="logo-subtitle">鑑定書楽々作成ツール</span>
         </div>
       </div>
@@ -81,6 +81,12 @@ const menuItems = [
     iconPath: '/src/assets/icons/template.svg',
     label: 'テンプレート設定',
     description: '鑑定書デザイン調整'
+  },
+  {
+    path: '/kantei/design-patterns',
+    iconPath: '/src/assets/icons/template.svg',
+    label: 'デザインパターン',
+    description: '複数デザイン比較選択'
   },
   {
     path: '/profile',

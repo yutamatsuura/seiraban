@@ -71,7 +71,8 @@ const testHealthCheck = async () => {
   clearResults()
 
   try {
-    const response = await axios.get('http://localhost:8502/health')
+    const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8502'
+    const response = await axios.get(`${baseURL}/health`)
     healthResult.value = response.data
   } catch (err: any) {
     error.value = `ヘルスチェックエラー: ${err.message}`

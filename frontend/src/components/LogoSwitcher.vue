@@ -4,10 +4,10 @@
       <component
         :is="'img'"
         :src="currentLogoPath"
-        alt="星羅盤ロゴ"
+        alt="運命織ロゴ"
         class="logo-image"
       />
-      <span class="logo-text">星羅盤</span>
+      <span class="logo-text">運命織</span>
       <span class="logo-subtitle">鑑定書楽々作成ツール</span>
     </div>
 

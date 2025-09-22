@@ -47,6 +47,12 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/kantei/design-patterns',
+    name: 'DesignPatterns',
+    component: () => import('@/views/DesignPatternsView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/profile',
     name: 'Profile',
     component: () => import('@/views/ProfileView.vue'),

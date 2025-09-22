@@ -60,10 +60,70 @@
     </div>
 
     <!-- Main Content - Only show when diagnosis is completed -->
-    <div v-else-if="diagnosis && (diagnosis.status === 'completed' || diagnosis.status === 'partial')" class="diagnosis-content" id="diagnosis-report">
+    <div
+      v-else-if="diagnosis && (diagnosis.status === 'completed' || diagnosis.status === 'partial')"
+      class="diagnosis-content"
+      :class="{
+        [`theme-${templateSettings?.color_theme}`]: templateSettings?.color_theme,
+        [`font-${templateSettings?.font_family}`]: templateSettings?.font_family,
+        [`layout-${templateSettings?.layout_style}`]: templateSettings?.layout_style
+      }"
+      :style="templateStyles"
+      id="diagnosis-report"
+    >
 
-      <!-- Client Information -->
-      <div class="card client-info">
+      <!-- Pattern A: Modern Minimal Header -->
+      <div class="template-header modern-minimal">
+        <div class="header-background"></div>
+        <div class="header-content">
+          <!-- Logo Section -->
+          <div class="logo-section">
+            <div v-if="logoUrl" class="logo-container">
+              <img :src="logoUrl" alt="ロゴ" class="logo-image" />
+            </div>
+            <div v-else class="logo-placeholder">
+              <div class="logo-placeholder-content">
+                ロゴ未設定
+              </div>
+            </div>
+          </div>
+
+          <!-- Main Title Section -->
+          <div class="title-section">
+            <div class="title-ornament"></div>
+            <h1 class="diagnosis-title">
+              <span v-if="diagnosis.diagnosis_pattern === 'kyusei_only'">九星気学・吉方位鑑定書</span>
+              <span v-else-if="diagnosis.diagnosis_pattern === 'seimei_only'">姓名判断鑑定書</span>
+              <span v-else>九星気学・姓名判断 総合鑑定書</span>
+            </h1>
+            <div class="title-ornament"></div>
+          </div>
+
+          <!-- Business Info Section -->
+          <div class="business-section">
+            <div v-if="templateSettings?.business_name" class="business-card">
+              <div class="business-info">
+                <h2 class="business-name">{{ templateSettings.business_name }}</h2>
+                <p v-if="templateSettings?.operator_name" class="operator-name">
+                  <span class="operator-label">鑑定士</span>
+                  <span class="operator-value">{{ templateSettings.operator_name }}</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Date Section -->
+        <div class="date-section">
+          <div class="date-container">
+            <span class="date-label">鑑定実施日</span>
+            <span class="date-value">{{ formatDate(diagnosis.created_at) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Client Information - 姓名判断パターンでは非表示 -->
+      <div v-if="diagnosis.diagnosis_pattern !== 'seimei_only'" class="card client-info">
         <div class="card-header">
           <h2>依頼者情報</h2>
         </div>
@@ -79,6 +139,10 @@
                 formatDateWithAge(diagnosis.client_info?.birth_date) ||
                 '未設定'
               }}</span>
+            </div>
+            <div v-if="diagnosis.client_info?.birth_time" class="info-item">
+              <label>出生時間</label>
+              <span>{{ diagnosis.client_info.birth_time }}</span>
             </div>
             <div class="info-item">
               <label>十二支</label>
@@ -333,6 +397,22 @@
         </div>
       </div>
 
+      <!-- Template Footer -->
+      <div class="template-footer modern-minimal">
+        <div class="footer-content">
+          <div v-if="templateSettings?.business_name || templateSettings?.operator_name" class="footer-info">
+            <div v-if="templateSettings?.business_name" class="footer-business">
+              {{ templateSettings.business_name }}
+            </div>
+            <div v-if="templateSettings?.operator_name" class="footer-operator">
+              鑑定士：{{ templateSettings.operator_name }}
+            </div>
+          </div>
+          <div class="footer-disclaimer">
+            ※この鑑定は参考用であり、結果について当事務所は責任を負いかねます。
+          </div>
+        </div>
+      </div>
 
     </div>
 
@@ -351,7 +431,7 @@ import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { apiClient } from '@/services/api-client'
 import MainLayout from '@/components/layout/MainLayout.vue'
-import type { DiagnosisResult } from '@/services/api-client'
+import type { DiagnosisResult, TemplateSettings } from '@/services/api-client'
 
 const route = useRoute()
 const router = useRouter()
@@ -363,6 +443,10 @@ const pdfGenerating = ref(false)
 const autoRefreshTimer = ref<number | null>(null)
 const stepProgress = ref(0)
 const adminMode = ref(false)
+
+// テンプレート設定
+const templateSettings = ref<TemplateSettings | null>(null)
+const templateLoading = ref(false)
 
 // シンプルなローディング用の変数
 const remainingSeconds = ref(60)
@@ -438,6 +522,20 @@ const loadDiagnosis = async () => {
   }
 }
 
+// テンプレート設定読み込み
+const loadTemplateSettings = async () => {
+  templateLoading.value = true
+  try {
+    const settings = await apiClient.getTemplateSettings()
+    templateSettings.value = settings
+  } catch (err: any) {
+    console.error('Failed to load template settings:', err)
+    // テンプレート設定の読み込み失敗はサイレントにする
+  } finally {
+    templateLoading.value = false
+  }
+}
+
 const generatePDF = async () => {
   if (!diagnosis.value) return
 
@@ -451,7 +549,8 @@ const generatePDF = async () => {
       console.log('PDF generation successful:', response)
 
       // 静的ファイルのURLを構築
-      const fileUrl = `http://localhost:8502${response.pdf_url.replace('/tmp/pdf_storage', '/static')}`
+      const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8502'
+      const fileUrl = `${baseURL}${response.pdf_url.replace('/tmp/pdf_storage', '/static')}`
 
       if (response.filename.endsWith('.pdf')) {
         // PDFファイルの場合、ダウンロードリンクを作成
@@ -616,6 +715,58 @@ const availableCharacterKeys = computed(() => {
   })
 })
 
+// テンプレート設定に基づく動的スタイル
+const templateStyles = computed(() => {
+  const settings = templateSettings.value
+  if (!settings) return {}
+
+  const styles: Record<string, string> = {}
+
+  // カラーテーマの適用
+  if (settings.color_theme && settings.color_theme !== 'default') {
+    const themeColors = getThemeColors(settings.color_theme)
+    styles['--primary-color'] = themeColors.primary
+    styles['--accent-color'] = themeColors.accent
+  }
+
+  // フォントファミリーの適用
+  if (settings.font_family && settings.font_family !== 'default') {
+    styles['--main-font'] = getFontFamily(settings.font_family)
+  }
+
+  return styles
+})
+
+// ロゴURLの取得
+const logoUrl = computed(() => {
+  if (!templateSettings.value?.logo_url) return null
+  const url = templateSettings.value.logo_url
+  const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8502'
+  return url.startsWith('http') ? url : `${baseURL}/${url}`
+})
+
+// テーマカラーの取得
+const getThemeColors = (theme: string) => {
+  const colorMap = {
+    elegant: { primary: '#8e44ad', accent: '#9b59b6' },
+    warm: { primary: '#e67e22', accent: '#d35400' },
+    natural: { primary: '#27ae60', accent: '#2ecc71' },
+    professional: { primary: '#34495e', accent: '#2c3e50' }
+  }
+  return colorMap[theme as keyof typeof colorMap] || { primary: '#3498db', accent: '#2980b9' }
+}
+
+// フォントファミリーの取得
+const getFontFamily = (font: string) => {
+  const fontMap = {
+    'noto-serif': '"Noto Serif JP", serif',
+    'noto-sans': '"Noto Sans JP", sans-serif',
+    'hiragino': '"Hiragino Mincho ProN", serif',
+    'yu-mincho': '"Yu Mincho", serif'
+  }
+  return fontMap[font as keyof typeof fontMap] || 'inherit'
+}
+
 const updateStepProgress = (result: DiagnosisResult) => {
   // 診断が完了した時（completed または partial）は即座にプレビュー表示
   if (result.status === 'completed' || result.status === 'partial') {
@@ -712,6 +863,7 @@ const rotateProcessDetail = () => {
 onMounted(() => {
   console.log('🔥 PreviewView マウント開始', { diagnosisId: diagnosisId.value })
   loadDiagnosis()
+  loadTemplateSettings()
   // startLoadingAnimationはwatchで呼ぶように変更
   console.log('🔥 PreviewView マウント完了')
 })
@@ -1544,6 +1696,290 @@ onUnmounted(() => {
   }
   80%, 100% {
     text-shadow: .25em 0 0 #666, .5em 0 0 #666;
+  }
+}
+
+// Pattern A: Clean & Compact Design
+.template-header.modern-minimal {
+  background: white;
+  border: 2px solid var(--primary-color, #3498db);
+  border-radius: 8px;
+  margin-bottom: 24px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  .header-background {
+    display: none;
+  }
+
+  .header-content {
+    padding: 20px 24px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 20px;
+    align-items: center;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+      text-align: center;
+      gap: 16px;
+    }
+  }
+
+  // Logo Section
+  .logo-section {
+    .logo-container {
+      width: 60px;
+      height: 60px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #e0e0e0;
+
+      .logo-image {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+    }
+
+    .logo-placeholder {
+      width: 60px;
+      height: 60px;
+      background: #f5f5f5;
+      border: 2px dashed #ccc;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      .logo-placeholder-content {
+        color: #999;
+        font-size: 10px;
+        text-align: center;
+        line-height: 1.2;
+      }
+    }
+  }
+
+  // Title Section
+  .title-section {
+    .title-ornament {
+      display: none;
+    }
+
+    .diagnosis-title {
+      font-size: 1.8rem;
+      font-weight: 600;
+      margin: 0;
+      color: var(--primary-color, #3498db);
+      line-height: 1.3;
+
+      @media (max-width: 768px) {
+        font-size: 1.4rem;
+      }
+    }
+  }
+
+  // Business Section
+  .business-section {
+    text-align: right;
+
+    @media (max-width: 768px) {
+      text-align: center;
+    }
+
+    .business-card {
+      background: none;
+      border: none;
+      padding: 0;
+
+      .business-name {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0 0 4px 0;
+        color: var(--primary-color, #3498db);
+      }
+
+      .operator-name {
+        margin: 0;
+        font-size: 0.9rem;
+        color: #666;
+
+        .operator-label {
+          margin-right: 4px;
+        }
+
+        .operator-value {
+          font-weight: 500;
+          color: #333;
+        }
+      }
+    }
+  }
+
+  // Date Section
+  .date-section {
+    background: #f8f9fa;
+    border-top: 1px solid #e0e0e0;
+    padding: 12px 24px;
+
+    .date-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      color: #666;
+
+      .date-label {
+        font-weight: 500;
+      }
+
+      .date-value {
+        color: #333;
+      }
+    }
+  }
+}
+
+// カードスタイル（クリーン&コンパクト）
+.diagnosis-content .card {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background: white;
+  overflow: hidden;
+  margin-bottom: 16px;
+
+  .card-header {
+    background: var(--primary-color, #3498db);
+    color: white;
+    padding: 12px 20px;
+    border-bottom: none;
+
+    h2, h3 {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+  }
+
+  .card-body {
+    padding: 20px;
+  }
+}
+
+// 情報グリッドをコンパクトに
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.info-item {
+  background: #f8f9fa;
+  padding: 12px;
+  border-radius: 6px;
+  border-left: 3px solid var(--primary-color, #3498db);
+
+  label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    display: block;
+  }
+
+  span {
+    font-size: 14px;
+    color: #333;
+    font-weight: 500;
+    display: block;
+  }
+}
+
+// セクションスタイルをコンパクトに
+.section {
+  margin-bottom: 20px;
+
+  h3 {
+    margin: 0 0 12px 0;
+    font-size: 1rem;
+    color: var(--primary-color, #3498db);
+    border-bottom: 2px solid var(--primary-color, #3498db);
+    padding-bottom: 6px;
+    font-weight: 600;
+  }
+}
+
+// 九星グリッドなどをコンパクトに
+.nine-star-grid, .zodiac-grid, .stroke-grid, .direction-grid, .special-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.star-item, .zodiac-item, .stroke-item, .direction-item, .special-info-item {
+  background: #f8f9fa;
+  padding: 10px;
+  border-radius: 6px;
+  text-align: center;
+  border-left: 3px solid var(--accent-color, #2980b9);
+
+  label {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    color: #666;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+  }
+
+  span, .star-value {
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .star-value {
+    color: var(--primary-color, #3498db);
+  }
+}
+
+// フッタースタイル
+.template-footer.modern-minimal {
+  margin-top: 32px;
+  border-top: 2px solid var(--primary-color, #3498db);
+  background: #f8f9fa;
+
+  .footer-content {
+    padding: 20px 24px;
+    text-align: center;
+  }
+
+  .footer-info {
+    margin-bottom: 16px;
+
+    .footer-business {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--primary-color, #3498db);
+      margin-bottom: 4px;
+    }
+
+    .footer-operator {
+      font-size: 0.9rem;
+      color: #666;
+    }
+  }
+
+  .footer-disclaimer {
+    font-size: 0.8rem;
+    color: #999;
+    line-height: 1.4;
+    padding-top: 12px;
+    border-top: 1px solid #e0e0e0;
   }
 }
 </style>

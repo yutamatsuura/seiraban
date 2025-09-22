@@ -2,8 +2,8 @@
   <div class="login-page">
     <div class="login-container">
       <div class="logo-section">
-        <div class="logo">星羅盤</div>
-        <div class="subtitle">SEIRABAN - 鑑定書楽々作成ツール</div>
+        <div class="logo">運命織</div>
+        <div class="subtitle">UnmeiOri - 鑑定書楽々作成ツール</div>
         <div class="tagline">プロフェッショナルな鑑定書を1分で作成します</div>
       </div>
 

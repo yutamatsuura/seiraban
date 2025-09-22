@@ -29,7 +29,7 @@ start_service() {
 
 # Check if we're in the right directory
 if [[ ! -d "system" || ! -d "frontend" || ! -d "backend" ]]; then
-    echo "❌ Please run this script from the sindankantei root directory"
+    echo "❌ Please run this script from the inoue4 root directory"
     exit 1
 fi
 
