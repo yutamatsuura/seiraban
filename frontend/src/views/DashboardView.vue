@@ -107,7 +107,7 @@
                   </span>
                 </div>
                 <div class="kantei-actions">
-                  <button class="icon-btn" @click="viewKantei(kantei.id)">
+                  <button class="icon-btn" @click="viewKantei(kantei.id)" title="鑑定書を確認" aria-label="鑑定書を確認">
                     <span class="material-icons">visibility</span>
                   </button>
                 </div>

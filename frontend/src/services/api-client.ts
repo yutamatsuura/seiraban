@@ -16,6 +16,8 @@ export interface DiagnosisRequest {
   birth_date: string
   gender: 'male' | 'female'
   name_for_seimei?: string
+  diagnosis_pattern?: string  // "kyusei_only" | "seimei_only" | "all"
+  birth_time?: string  // 出生時間（HH:MM形式、任意）
 }
 
 export interface DiagnosisResult {
@@ -26,6 +28,7 @@ export interface DiagnosisResult {
   seimei_result?: any
   status: 'processing' | 'completed' | 'failed'
   error_message?: string
+  diagnosis_pattern?: string  // "kyusei_only" | "seimei_only" | "all"
 }
 
 export interface TemplateSettings {

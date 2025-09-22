@@ -80,6 +80,8 @@ class DiagnosisRequest(BaseModel):
     gender: str
     name: Optional[str] = None  # 姓名判断用の名前
     name_for_seimei: Optional[str] = None  # 後方互換性用
+    diagnosis_pattern: str = "all"  # "kyusei_only", "seimei_only", "all"
+    birth_time: Optional[str] = None  # 出生時間（HH:MM形式、任意）
 
 class DiagnosisResult(BaseModel):
     id: str
@@ -116,7 +118,9 @@ def create_kantei_record(db, user_id: int, client_name: str, request_data):
             "name": client_name,
             "birth_date": request_data.birth_date,
             "gender": request_data.gender,
-            "name_for_seimei": getattr(request_data, 'name', None) or getattr(request_data, 'name_for_seimei', None)
+            "name_for_seimei": getattr(request_data, 'name', None) or getattr(request_data, 'name_for_seimei', None),
+            "diagnosis_pattern": getattr(request_data, 'diagnosis_pattern', 'all'),
+            "birth_time": getattr(request_data, 'birth_time', None)
         },
         calculation_result={},
         status="processing"
@@ -203,7 +207,9 @@ async def create_diagnosis(request: DiagnosisRequest, background_tasks: Backgrou
             kantei_record.id,
             request.birth_date,
             request.gender,
-            name_for_seimei
+            name_for_seimei,
+            request.diagnosis_pattern,
+            request.birth_time
         )
 
         db.close()
@@ -240,6 +246,11 @@ async def get_diagnosis(diagnosis_id: str, admin_mode: bool = False):
         # クライアント基本情報（プレビュー用）
         if kantei_record.client_info:
             result["client_info"] = kantei_record.client_info
+            # 診断パターンを抽出
+            if "diagnosis_pattern" in kantei_record.client_info:
+                result["diagnosis_pattern"] = kantei_record.client_info["diagnosis_pattern"]
+            else:
+                result["diagnosis_pattern"] = "all"  # 既存レコードのデフォルト
 
         # 計算結果がある場合は追加
         if kantei_record.calculation_result:
@@ -1355,8 +1366,9 @@ async def process_diagnosis(diagnosis_id: str, birth_date: str, gender: str, nam
         diagnosis.error_message = str(e)
         diagnosis.status = "failed"
 
-async def process_diagnosis_db(record_id: int, birth_date: str, gender: str, name_for_seimei: Optional[str]):
-    """データベース専用バックグラウンド診断処理"""
+async def process_diagnosis_db(record_id: int, birth_date: str, gender: str, name_for_seimei: Optional[str],
+                              diagnosis_pattern: str = "all", birth_time: Optional[str] = None):
+    """データベース専用バックグラウンド診断処理（パターン対応版）"""
     try:
         db = get_database_session()
 
@@ -1366,19 +1378,26 @@ async def process_diagnosis_db(record_id: int, birth_date: str, gender: str, nam
             print(f"鑑定記録 {record_id} が見つかりません")
             return
 
-        # 九星気学計算
-        kyusei_result = await run_puppeteer_bridge("kyusei", {
-            "birth_date": birth_date,
-            "gender": gender
-        })
-
         calculation_result = {}
 
-        if kyusei_result["success"]:
-            calculation_result["kyusei"] = kyusei_result["result"]
+        # パターン別処理実行
+        # 九星気学計算（kyusei_only または all の場合）
+        if diagnosis_pattern in ["kyusei_only", "all"]:
+            kyusei_data = {
+                "birth_date": birth_date,
+                "gender": gender
+            }
+            # 出生時間が提供されている場合は追加（将来的な機能拡張用）
+            if birth_time:
+                kyusei_data["birth_time"] = birth_time
 
-        # 姓名判断計算（名前が提供されている場合）
-        if name_for_seimei:
+            kyusei_result = await run_puppeteer_bridge("kyusei", kyusei_data)
+
+            if kyusei_result["success"]:
+                calculation_result["kyusei"] = kyusei_result["result"]
+
+        # 姓名判断計算（seimei_only または all の場合で、名前が提供されている場合）
+        if diagnosis_pattern in ["seimei_only", "all"] and name_for_seimei:
             # 姓名判断システムはスペース区切りの名前が必要
             formatted_name = name_for_seimei
             if len(name_for_seimei) >= 2 and ' ' not in name_for_seimei:
@@ -1957,19 +1976,35 @@ async def process_diagnosis_db(record_id: int, birth_date: str, gender: str, nam
         # データベースの結果を更新
         kantei_record.calculation_result = calculation_result
 
-        # 九星気学と姓名判断の両方が成功した場合のみ完了とする
+        # パターン別のステータス判定
         has_kyusei = "kyusei" in calculation_result and calculation_result["kyusei"]
         has_seimei = "seimei" in calculation_result and calculation_result["seimei"]
 
-        if has_kyusei and has_seimei:
-            kantei_record.status = "completed"
-            print(f"鑑定記録 {record_id} を完了状態に設定しました（九星気学・姓名判断両方成功）")
-        elif has_kyusei:
-            kantei_record.status = "partial"  # 九星気学のみ成功
-            print(f"鑑定記録 {record_id} は九星気学のみ完了（姓名判断失敗）")
-        else:
-            kantei_record.status = "failed"
-            print(f"鑑定記録 {record_id} は失敗（九星気学失敗）")
+        # パターンに応じたステータス決定
+        if diagnosis_pattern == "kyusei_only":
+            if has_kyusei:
+                kantei_record.status = "completed"
+                print(f"鑑定記録 {record_id} を完了状態に設定しました（九星気学のみパターン成功）")
+            else:
+                kantei_record.status = "failed"
+                print(f"鑑定記録 {record_id} は失敗（九星気学失敗）")
+        elif diagnosis_pattern == "seimei_only":
+            if has_seimei:
+                kantei_record.status = "completed"
+                print(f"鑑定記録 {record_id} を完了状態に設定しました（姓名判断のみパターン成功）")
+            else:
+                kantei_record.status = "failed"
+                print(f"鑑定記録 {record_id} は失敗（姓名判断失敗）")
+        else:  # "all" パターン
+            if has_kyusei and has_seimei:
+                kantei_record.status = "completed"
+                print(f"鑑定記録 {record_id} を完了状態に設定しました（九星気学・姓名判断両方成功）")
+            elif has_kyusei:
+                kantei_record.status = "partial"  # 九星気学のみ成功
+                print(f"鑑定記録 {record_id} は九星気学のみ完了（姓名判断失敗）")
+            else:
+                kantei_record.status = "failed"
+                print(f"鑑定記録 {record_id} は失敗（九星気学失敗）")
 
         db.commit()
         db.close()

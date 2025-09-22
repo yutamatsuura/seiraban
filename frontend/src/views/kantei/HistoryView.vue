@@ -9,19 +9,16 @@
       <p>過去の鑑定記録を確認できます</p>
     </div>
 
-    <!-- エラーメッセージ -->
-    <div v-if="errorMessage" class="error-message">
-      {{ errorMessage }}
-    </div>
-
-    <!-- ローディング状態 -->
-    <div v-if="loading" class="loading-container">
-      <div class="loading-spinner"></div>
-      <p>鑑定履歴を読み込み中...</p>
-    </div>
+    <!-- グローバルローディング -->
+    <LoadingIndicator
+      v-if="isLoading"
+      type="spinner"
+      variant="card"
+      message="鑑定履歴を読み込み中..."
+    />
 
     <!-- 履歴が空の場合 -->
-    <div v-else-if="!loading && diagnoses.length === 0" class="empty-state">
+    <div v-else-if="!isLoading && !hasError && diagnoses.length === 0" class="empty-state">
       <div class="empty-icon">
         <span class="material-icons">history</span>
       </div>
@@ -34,7 +31,7 @@
     </div>
 
     <!-- 履歴一覧 -->
-    <div v-else-if="!loading" class="history-content">
+    <div v-else-if="!isLoading && !hasError" class="history-content">
       <!-- フィルター・ソート -->
       <div class="controls">
         <div class="search-box">
@@ -119,7 +116,7 @@
               :class="{ 'btn-disabled': diagnosis.status === 'failed' }"
             >
               <span class="material-icons">visibility</span>
-              詳細を見る
+              鑑定書を確認
             </router-link>
             <button
               v-if="diagnosis.status === 'completed'"
@@ -164,13 +161,16 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useErrorHandler } from '@/composables/useErrorHandler'
 import { apiClient, type DiagnosisResult } from '@/services/api-client'
 import MainLayout from '@/components/layout/MainLayout.vue'
+import LoadingIndicator from '@/components/LoadingIndicator.vue'
+
+// エラーハンドリング
+const { error, loading, hasError, isLoading, withErrorHandling, retry, clearError } = useErrorHandler()
 
 // データ状態
 const diagnoses = ref<DiagnosisResult[]>([])
-const loading = ref(false)
-const errorMessage = ref('')
 const generatingPDF = ref<string | null>(null)
 
 // フィルター・ソート状態
@@ -251,17 +251,14 @@ const getStatusText = (status: string) => {
 
 // API呼び出し関数
 const loadDiagnoses = async () => {
-  loading.value = true
-  errorMessage.value = ''
-
-  try {
+  return await withErrorHandling(async () => {
     const response = await apiClient.listDiagnoses()
     diagnoses.value = response.diagnoses || []
-  } catch (error: any) {
-    errorMessage.value = error.message || '鑑定履歴の取得に失敗しました'
-  } finally {
-    loading.value = false
-  }
+    return true
+  }, {
+    loadingMessage: '鑑定履歴を読み込み中...',
+    retryCount: 2
+  })
 }
 
 const refreshList = () => {
@@ -280,7 +277,7 @@ const generatePDF = async (diagnosisId: string) => {
       // 実際の実装では、ダウンロードリンクを提供するか直接ダウンロードを開始
     }
   } catch (error: any) {
-    errorMessage.value = `PDF生成に失敗しました: ${error.message}`
+    console.error(`PDF生成に失敗しました: ${error.message}`)
   } finally {
     generatingPDF.value = null
   }

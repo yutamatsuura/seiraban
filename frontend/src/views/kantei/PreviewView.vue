@@ -34,14 +34,19 @@
       </div>
     </div>
 
-    <!-- Loading or Processing State - 超シンプル版 -->
-    <div v-if="!diagnosis || (diagnosis.status !== 'completed' && diagnosis.status !== 'partial')" class="loading-container">
+    <!-- Loading or Processing State - 超シンプル版（処理中の場合のみ） -->
+    <div v-if="diagnosis && diagnosis.status === 'processing'" class="loading-container">
       <div class="loading-content">
         <div class="loading-spinner"></div>
         <div class="loading-text">
           <h2>鑑定を実行中です</h2>
           <p v-if="diagnosis">{{ diagnosis.client_name }} 様の鑑定結果を計算しています...</p>
-          <p class="time-estimate">処理時間の目安：15〜30秒程度</p>
+          <p class="time-estimate">
+            処理時間の目安：
+            <span v-if="diagnosis?.diagnosis_pattern === 'kyusei_only'">5〜15秒程度</span>
+            <span v-else-if="diagnosis?.diagnosis_pattern === 'seimei_only'">5〜15秒程度</span>
+            <span v-else>15〜30秒程度</span>
+          </p>
           <p class="loading-dots">お待ちください<span class="dots"></span></p>
         </div>
       </div>
@@ -88,7 +93,7 @@
       </div>
 
       <!-- Kyusei (Nine Star Astrology) Results -->
-      <div v-if="diagnosis.kyusei_result" class="card kyusei-results">
+      <div v-if="diagnosis.kyusei_result && (diagnosis.diagnosis_pattern === 'kyusei_only' || diagnosis.diagnosis_pattern === 'all' || !diagnosis.diagnosis_pattern)" class="card kyusei-results">
         <div class="card-header">
           <h2>九星気学・吉方位の鑑定結果</h2>
         </div>
@@ -174,7 +179,7 @@
       </div>
 
       <!-- Seimei (Name Divination) Results -->
-      <div v-if="diagnosis.seimei_result" class="card seimei-results">
+      <div v-if="diagnosis.seimei_result && (diagnosis.diagnosis_pattern === 'seimei_only' || diagnosis.diagnosis_pattern === 'all' || !diagnosis.diagnosis_pattern)" class="card seimei-results">
         <div class="card-header">
           <h2>姓名判断の鑑定結果</h2>
         </div>
@@ -332,7 +337,7 @@
     </div>
 
     <!-- No Data State -->
-    <div v-else class="no-data-container">
+    <div v-else-if="!loading && !diagnosis" class="no-data-container">
       <h3>鑑定データが見つかりません</h3>
       <p>鑑定IDが正しくないか、鑑定がまだ作成されていません。</p>
       <router-link to="/kantei/new" class="btn btn-primary">新しい鑑定を作成</router-link>
@@ -407,14 +412,8 @@ const loadDiagnosis = async () => {
     currentLoading: loading.value
   })
 
-  // 完了状態の場合はloadingをtrueにしない（即座表示のため）
-  const wasCompleted = diagnosis.value?.status === 'completed' || diagnosis.value?.status === 'partial'
-  if (!wasCompleted) {
-    loading.value = true
-    // console.log('Loading状態をtrueに設定')
-  } else {
-    // console.log('既に完了状態のため、loading状態を変更しない')
-  }
+  // 初回読み込み時は一時的にloadingを設定、完了状態の場合はすぐに解除
+  loading.value = true
   error.value = null
 
   try {
@@ -432,12 +431,9 @@ const loadDiagnosis = async () => {
     console.error('Failed to load diagnosis:', err)
     error.value = err.message || '鑑定データの読み込みに失敗しました'
   } finally {
-    // 通常の場合はloadingを解除、完了状態はupdeStepProgressで処理
-    if (!wasCompleted) {
+    // loadingを解除（完了状態の場合はupdateStepProgressで既に解除済み）
+    if (diagnosis.value?.status !== 'processing') {
       loading.value = false
-      // console.log('finally: loading状態をfalseに設定')
-    } else {
-      // console.log('finally: 完了状態のため、loading状態を変更しない')
     }
   }
 }

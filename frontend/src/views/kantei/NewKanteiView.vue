@@ -25,9 +25,61 @@
       </div>
       <div class="card-body">
         <form @submit.prevent="submitDiagnosis" class="kantei-form">
-          <!-- お客様名（姓と名を分けて入力） -->
+          <!-- 診断パターン選択 -->
           <div class="form-group">
-            <label class="form-label required">お客様名</label>
+            <label class="form-label required">診断パターン</label>
+            <div class="pattern-selection">
+              <div class="pattern-option">
+                <input
+                  v-model="form.diagnosisPattern"
+                  type="radio"
+                  id="pattern-kyusei"
+                  value="kyusei_only"
+                  class="radio-input"
+                  :disabled="loading"
+                />
+                <label for="pattern-kyusei" class="radio-label">
+                  <div class="pattern-title">九星気学・吉方位</div>
+                  <div class="pattern-desc">生年月日・性別・出生時刻で鑑定</div>
+                </label>
+              </div>
+              <div class="pattern-option">
+                <input
+                  v-model="form.diagnosisPattern"
+                  type="radio"
+                  id="pattern-seimei"
+                  value="seimei_only"
+                  class="radio-input"
+                  :disabled="loading"
+                />
+                <label for="pattern-seimei" class="radio-label">
+                  <div class="pattern-title">姓名判断</div>
+                  <div class="pattern-desc">お名前で鑑定</div>
+                </label>
+              </div>
+              <div class="pattern-option">
+                <input
+                  v-model="form.diagnosisPattern"
+                  type="radio"
+                  id="pattern-all"
+                  value="all"
+                  class="radio-input"
+                  :disabled="loading"
+                />
+                <label for="pattern-all" class="radio-label">
+                  <div class="pattern-title">まとめて</div>
+                  <div class="pattern-desc">九星気学＋吉方位＋姓名判断</div>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- お名前（姓と名を分けて入力） -->
+          <div class="form-group">
+            <label class="form-label" :class="{ required: form.diagnosisPattern !== 'kyusei_only' }">
+              お名前
+              <span v-if="form.diagnosisPattern === 'kyusei_only'" class="optional-label">（任意）</span>
+            </label>
             <div class="name-inputs">
               <div class="name-input-group">
                 <label for="lastName" class="sub-label">姓</label>
@@ -37,7 +89,7 @@
                   id="lastName"
                   class="form-input"
                   placeholder="田中"
-                  required
+                  :required="form.diagnosisPattern !== 'kyusei_only'"
                   :disabled="loading"
                   @input="validateInput('lastName', $event)"
                   maxlength="9"
@@ -51,7 +103,7 @@
                   id="firstName"
                   class="form-input"
                   placeholder="太郎"
-                  required
+                  :required="form.diagnosisPattern !== 'kyusei_only'"
                   :disabled="loading"
                   @input="validateInput('firstName', $event)"
                   maxlength="9"
@@ -59,7 +111,12 @@
               </div>
             </div>
             <div class="field-help">
-              ※姓と名を分けて入力してください（各9文字まで）。ひらがな、カタカナ、漢字のみ使用可能です。
+              <span v-if="form.diagnosisPattern === 'kyusei_only'">
+                ※お名前は省略可能です。空欄の場合は自動的に識別名が設定されます。
+              </span>
+              <span v-else>
+                ※姓と名を分けて入力してください（各9文字まで）。ひらがな、カタカナ、漢字のみ使用可能です。
+              </span>
             </div>
             <div v-if="nameValidationError" class="validation-error">
               {{ nameValidationError }}
@@ -76,21 +133,39 @@
             </div>
           </div>
 
-          <!-- 生年月日 -->
-          <div class="form-group">
-            <label for="birthDate" class="form-label required">生年月日</label>
-            <input
-              v-model="form.birthDate"
-              type="date"
-              id="birthDate"
-              class="form-input"
-              required
-              :disabled="loading"
-            />
+          <!-- 生年月日と出生時刻（九星気学の場合のみ表示） -->
+          <div class="form-group" v-if="form.diagnosisPattern === 'kyusei_only' || form.diagnosisPattern === 'all'">
+            <div class="date-time-inputs">
+              <div class="date-input-group">
+                <label for="birthDate" class="form-label required">生年月日</label>
+                <input
+                  v-model="form.birthDate"
+                  type="date"
+                  id="birthDate"
+                  class="form-input"
+                  required
+                  :disabled="loading"
+                />
+              </div>
+              <div class="time-input-group">
+                <label for="birthTime" class="form-label">出生時刻（任意）</label>
+                <input
+                  v-model="form.birthTime"
+                  type="time"
+                  id="birthTime"
+                  class="form-input"
+                  placeholder="10:30"
+                  :disabled="loading"
+                />
+              </div>
+            </div>
+            <div class="form-help">
+              正確な出生時刻をご存知の場合はご入力ください。将来的により詳細な鑑定に使用されます。
+            </div>
           </div>
 
-          <!-- 性別 -->
-          <div class="form-group">
+          <!-- 性別（九星気学の場合のみ表示） -->
+          <div class="form-group" v-if="form.diagnosisPattern === 'kyusei_only' || form.diagnosisPattern === 'all'">
             <label class="form-label required">性別</label>
             <div class="radio-group">
               <label class="radio-item">
@@ -115,7 +190,6 @@
               </label>
             </div>
           </div>
-
 
           <!-- アクションボタン -->
           <div class="form-actions">
@@ -159,7 +233,9 @@ const form = ref({
   lastName: '',
   firstName: '',
   birthDate: '',
-  gender: '' as 'male' | 'female' | ''
+  gender: '' as 'male' | 'female' | '',
+  diagnosisPattern: 'kyusei_only' as 'kyusei_only' | 'seimei_only' | 'all',
+  birthTime: ''
 })
 
 // UI状態
@@ -269,18 +345,37 @@ const validateInput = (field: 'lastName' | 'firstName', event: Event) => {
 
 // バリデーション
 const isFormValid = computed(() => {
-  const hasBasicInfo = form.value.lastName.trim() !== '' &&
-                      form.value.firstName.trim() !== '' &&
-                      form.value.birthDate !== '' &&
-                      form.value.gender !== '' &&
-                      nameValidationError.value === ''
+  // パターンに応じた必須項目チェック
+  let hasRequiredInfo = true
 
-  const hasValidCharacters = isValidJapanese(form.value.lastName) &&
-                            isValidJapanese(form.value.firstName) &&
-                            !hasUnsupportedCharacters(form.value.lastName) &&
-                            !hasUnsupportedCharacters(form.value.firstName)
+  if (form.value.diagnosisPattern === 'seimei_only') {
+    // 姓名判断のみの場合：名前のみ必須
+    hasRequiredInfo = form.value.lastName.trim() !== '' &&
+                     form.value.firstName.trim() !== '' &&
+                     nameValidationError.value === ''
+  } else if (form.value.diagnosisPattern === 'kyusei_only') {
+    // 九星気学のみの場合：生年月日・性別は必須、名前は任意
+    hasRequiredInfo = form.value.birthDate !== '' &&
+                     form.value.gender !== '' &&
+                     nameValidationError.value === ''
+  } else {
+    // 全部の場合：名前・生年月日・性別全て必須
+    hasRequiredInfo = form.value.lastName.trim() !== '' &&
+                     form.value.firstName.trim() !== '' &&
+                     form.value.birthDate !== '' &&
+                     form.value.gender !== '' &&
+                     nameValidationError.value === ''
+  }
 
-  return hasBasicInfo && hasValidCharacters
+  // 名前が入力されている場合のみ文字チェック
+  const hasValidCharacters = form.value.lastName.trim() === '' && form.value.firstName.trim() === ''
+    ? true // 名前が空の場合はチェックしない
+    : isValidJapanese(form.value.lastName) &&
+      isValidJapanese(form.value.firstName) &&
+      !hasUnsupportedCharacters(form.value.lastName) &&
+      !hasUnsupportedCharacters(form.value.firstName)
+
+  return hasRequiredInfo && hasValidCharacters
 })
 
 // 代替案適用
@@ -299,7 +394,9 @@ const resetForm = () => {
     lastName: '',
     firstName: '',
     birthDate: '',
-    gender: ''
+    gender: '',
+    diagnosisPattern: 'kyusei_only',
+    birthTime: ''
   }
   errorMessage.value = ''
   successMessage.value = ''
@@ -318,12 +415,23 @@ const submitDiagnosis = async () => {
   successMessage.value = ''
 
   try {
-    const fullName = `${form.value.lastName} ${form.value.firstName}`
+    // 名前の処理：空の場合は自動生成
+    let fullName = `${form.value.lastName} ${form.value.firstName}`.trim()
+
+    if (!fullName && form.value.diagnosisPattern === 'kyusei_only') {
+      // 九星気学のみで名前が空の場合は自動生成
+      const now = new Date()
+      const timestamp = now.toISOString().slice(0,16).replace(/[-:T]/g, '')
+      fullName = `鑑定者様_${timestamp}`
+    }
+
     const request: DiagnosisRequest = {
       client_name: fullName,
       birth_date: form.value.birthDate,
       gender: form.value.gender,
-      name_for_seimei: fullName // 姓名判断も自動的に実行
+      name_for_seimei: form.value.diagnosisPattern !== 'kyusei_only' ? fullName : undefined,
+      diagnosis_pattern: form.value.diagnosisPattern,
+      birth_time: form.value.birthTime || undefined
     }
 
     console.log('📤 API呼び出し開始', request)
@@ -644,6 +752,63 @@ const submitDiagnosis = async () => {
   100% { transform: rotate(360deg); }
 }
 
+// パターン選択のスタイル（コンパクト横並び版・説明文付き）
+.pattern-selection {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.pattern-option {
+  position: relative;
+  flex: 1;
+  min-width: 160px;
+
+  .radio-input {
+    position: absolute;
+    opacity: 0;
+
+    &:checked + .radio-label {
+      background: rgba(59, 130, 246, 0.1);
+      border-color: #3b82f6;
+
+      .pattern-title {
+        color: #3b82f6;
+        font-weight: 600;
+      }
+    }
+  }
+
+  .radio-label {
+    display: block;
+    padding: 14px 12px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    background: white;
+
+    &:hover {
+      border-color: #d1d5db;
+      background: rgba(59, 130, 246, 0.05);
+    }
+
+    .pattern-title {
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 4px;
+      color: #1f2937;
+    }
+
+    .pattern-desc {
+      font-size: 12px;
+      color: #6b7280;
+      line-height: 1.3;
+    }
+  }
+}
+
 // レスポンシブ
 @media (max-width: 768px) {
   .form-actions {
@@ -655,5 +820,55 @@ const submitDiagnosis = async () => {
     flex-direction: column;
     gap: 8px;
   }
+
+  .pattern-selection {
+    flex-direction: column;
+  }
+
+  .pattern-option {
+    min-width: auto;
+  }
+
+  .date-time-inputs {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .time-input-group {
+    flex: 1;
+  }
+}
+
+// 任意ラベルのスタイル
+.optional-label {
+  font-size: 12px;
+  font-weight: normal;
+  color: #6b7280;
+  margin-left: 4px;
+}
+
+// 生年月日と出生時刻の横並びレイアウト
+.date-time-inputs {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.date-input-group,
+.time-input-group {
+  flex: 1;
+
+  .form-label {
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .form-input {
+    width: 100%;
+  }
+}
+
+.time-input-group {
+  flex: 0 0 240px; // 出生時刻は固定幅（広め）
 }
 </style>
