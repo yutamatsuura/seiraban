@@ -379,9 +379,13 @@
       <div class="settings-panel desktop-panel" :class="{ collapsed: isSettingsCollapsed }">
         <div class="panel-header">
           <h2 v-if="!isSettingsCollapsed">カスタマイズ設定</h2>
-          <div v-if="isSettingsCollapsed" class="collapsed-indicator">
-            <span class="material-icons">tune</span>
-            <span class="collapsed-text">設定</span>
+          <div v-if="isSettingsCollapsed" class="collapsed-indicator" @click="toggleSettings">
+            <div class="floating-indicator">
+              <span class="material-icons">tune</span>
+              <span class="collapsed-text">設定</span>
+              <div class="pulse-ring"></div>
+            </div>
+            <div class="hover-tooltip">クリックで設定を開く</div>
           </div>
           <button @click="toggleSettings" class="collapse-btn" :title="isSettingsCollapsed ? '設定パネルを展開' : '設定パネルを閉じる'">
             <span class="material-icons">{{ isSettingsCollapsed ? 'chevron_left' : 'chevron_right' }}</span>
@@ -666,14 +670,11 @@ onMounted(async () => {
 
 .main-content {
   display: grid;
-  grid-template-columns: 1fr 400px;
+  grid-template-columns: 1fr;
   gap: 24px;
   align-items: start;
   transition: grid-template-columns 0.3s ease;
-
-  &.settings-collapsed {
-    grid-template-columns: 1fr 80px;
-  }
+  min-height: 150vh;
 
   @media (max-width: 1200px) {
     grid-template-columns: 1fr;
@@ -729,6 +730,7 @@ onMounted(async () => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   border: 1px solid #e0e0e0;
   overflow: hidden;
+  min-height: 1200px;
 
   .preview-header {
     display: flex;
@@ -780,8 +782,17 @@ onMounted(async () => {
   transition: all 0.3s ease;
 
   &.desktop-panel {
-    position: sticky;
+    position: fixed;
     top: 20px;
+    right: 20px;
+    width: 400px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    z-index: 10;
+
+    &.collapsed {
+      width: 80px;
+    }
 
     @media (max-width: 1200px) {
       display: none;
@@ -800,66 +811,121 @@ onMounted(async () => {
   }
 
   &.collapsed {
-    width: 80px;
+    width: 100px;
     background: linear-gradient(135deg, #3498db, #2980b9);
     border: 2px solid #2980b9;
-    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+    box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: scale(1.05);
+      box-shadow: 0 8px 25px rgba(52, 152, 219, 0.5);
+
+      .floating-indicator .pulse-ring {
+        animation: pulse 1.5s infinite;
+      }
+
+      .hover-tooltip {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
 
     .panel-header {
-      padding: 16px 8px;
+      padding: 20px 12px;
       background: transparent;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      border-bottom: none;
       flex-direction: column;
-      gap: 8px;
+      gap: 12px;
+      position: relative;
 
       .collapsed-indicator {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 4px;
-        color: white;
+        position: relative;
 
-        .material-icons {
-          font-size: 24px;
+        .floating-indicator {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 6px;
+          color: white;
+          position: relative;
+
+          .material-icons {
+            font-size: 28px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+          }
+
+          .collapsed-text {
+            font-size: 12px;
+            font-weight: 700;
+            text-align: center;
+            white-space: nowrap;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+          }
+
+          .pulse-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            border: 2px solid rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            opacity: 0;
+          }
         }
 
-        .collapsed-text {
-          font-size: 10px;
-          font-weight: 600;
-          text-align: center;
+        .hover-tooltip {
+          position: absolute;
+          top: 100%;
+          left: 50%;
+          transform: translateX(-50%) translateY(10px);
+          background: rgba(0, 0, 0, 0.8);
+          color: white;
+          padding: 8px 12px;
+          border-radius: 6px;
+          font-size: 11px;
           white-space: nowrap;
+          opacity: 0;
+          transition: all 0.3s ease;
+          pointer-events: none;
+          z-index: 1000;
+
+          &::before {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-bottom: 4px solid rgba(0, 0, 0, 0.8);
+          }
         }
       }
 
       .collapse-btn {
         background: rgba(255, 255, 255, 0.2);
         border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
 
         &:hover {
           background: rgba(255, 255, 255, 0.3);
+          transform: rotate(180deg);
         }
 
         .material-icons {
           color: white;
+          font-size: 18px;
         }
       }
-    }
-
-    &::before {
-      content: '設定パネルをクリックで展開';
-      position: absolute;
-      top: -30px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(52, 152, 219, 0.9);
-      color: white;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 11px;
-      white-space: nowrap;
-      opacity: 0;
-      animation: fadeInOut 3s ease-in-out;
-      pointer-events: none;
     }
   }
 
@@ -902,7 +968,7 @@ onMounted(async () => {
 
   .panel-content {
     padding: 24px;
-    max-height: 700px;
+    max-height: calc(100vh - 140px);
     overflow-y: auto;
   }
 }
@@ -1038,5 +1104,20 @@ onMounted(async () => {
   20% { opacity: 1; }
   80% { opacity: 1; }
   100% { opacity: 0; }
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+  50% {
+    opacity: 0.6;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.4);
+  }
 }
 </style>
