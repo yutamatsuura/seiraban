@@ -26,193 +26,219 @@
         </div>
 
         <div v-if="!isSettingsCollapsed" class="panel-content">
+          <!-- Tab Navigation -->
+          <div class="tab-navigation">
+            <button
+              v-for="tab in tabs"
+              :key="tab.id"
+              @click="activeTab = tab.id"
+              class="tab-button"
+              :class="{ active: activeTab === tab.id }"
+            >
+              <span class="material-icons">{{ tab.icon }}</span>
+              {{ tab.label }}
+            </button>
+          </div>
+
           <!-- Settings Form -->
           <form @submit.prevent="saveSettings" class="settings-form">
-            <!-- Basic Information -->
-            <div class="form-section">
-              <h3>基本情報</h3>
-              <div class="form-group">
-                <label for="businessName">事業者名</label>
-                <input
-                  id="businessName"
-                  v-model="templateSettings.businessName"
-                  type="text"
-                  placeholder="事業者名を入力"
-                  class="form-input"
-                />
-              </div>
-              <div class="form-group">
-                <label for="operatorName">鑑定者名</label>
-                <input
-                  id="operatorName"
-                  v-model="templateSettings.operatorName"
-                  type="text"
-                  placeholder="鑑定者名を入力"
-                  class="form-input"
-                />
-              </div>
-              <div class="form-group">
-                <label for="diagnosisTitle">鑑定書タイトル</label>
-                <input
-                  id="diagnosisTitle"
-                  v-model="templateSettings.diagnosisTitle"
-                  type="text"
-                  placeholder="鑑定書タイトルを入力"
-                  class="form-input"
-                />
-              </div>
-            </div>
-
-            <!-- Logo Settings -->
-            <div class="form-section">
-              <h3>ロゴ設定</h3>
-              <div class="form-group">
-                <label for="logoFile">ロゴファイル</label>
-                <div class="logo-upload-area">
-                  <div v-if="templateSettings.logoUrl" class="logo-preview">
-                    <img :src="logoImageUrl" alt="現在のロゴ" class="logo-preview-img" />
-                    <button @click="removeLogo" type="button" class="remove-logo-btn">削除</button>
+            <!-- Basic Information Tab -->
+            <div v-if="activeTab === 'basic'" class="tab-content">
+              <div class="compact-form-section">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="businessName">事業者名</label>
+                    <input
+                      id="businessName"
+                      v-model="templateSettings.businessName"
+                      type="text"
+                      placeholder="事業者名を入力"
+                      class="form-input"
+                    />
                   </div>
-                  <div v-else class="logo-upload-placeholder">
-                    <span class="material-icons">cloud_upload</span>
-                    <p>ロゴファイルをアップロード</p>
+                  <div class="form-group">
+                    <label for="operatorName">鑑定者名</label>
+                    <input
+                      id="operatorName"
+                      v-model="templateSettings.operatorName"
+                      type="text"
+                      placeholder="鑑定者名を入力"
+                      class="form-input"
+                    />
                   </div>
+                </div>
+                <div class="form-group">
+                  <label for="diagnosisTitle">鑑定書タイトル</label>
                   <input
-                    id="logoFile"
-                    ref="logoFileInput"
-                    type="file"
-                    accept="image/*"
-                    @change="handleLogoUpload"
-                    class="logo-file-input"
+                    id="diagnosisTitle"
+                    v-model="templateSettings.diagnosisTitle"
+                    type="text"
+                    placeholder="鑑定書タイトルを入力"
+                    class="form-input"
                   />
-                  <button @click="triggerLogoUpload" type="button" class="upload-btn">
-                    ファイルを選択
-                  </button>
                 </div>
-                <p class="form-help">JPEG、PNG、GIF、WebP形式（最大5MB）</p>
               </div>
             </div>
 
-            <!-- Color Settings -->
-            <div class="form-section">
-              <h3>カラー設定</h3>
-              <div class="form-group">
-                <label>カラーテーマ</label>
-                <div class="color-presets">
-                  <div
-                    v-for="preset in colorPresets"
-                    :key="preset.name"
-                    @click="selectColorPreset(preset)"
-                    class="color-preset"
-                    :class="{ active: templateSettings.colorTheme === preset.name }"
-                  >
-                    <div class="color-preview">
-                      <div class="primary-color" :style="{ backgroundColor: preset.primary }"></div>
-                      <div class="accent-color" :style="{ backgroundColor: preset.accent }"></div>
+            <!-- Logo Settings Tab -->
+            <div v-if="activeTab === 'logo'" class="tab-content">
+              <div class="compact-logo-settings">
+                <!-- Current Logo Preview -->
+                <div v-if="templateSettings.logoUrl" class="compact-logo-card">
+                  <div class="logo-preview-compact">
+                    <img :src="logoImageUrl" alt="現在のロゴ" class="logo-image" />
+                    <div class="logo-actions">
+                      <button @click="triggerLogoUpload" type="button" class="compact-btn change-btn">
+                        <span class="material-icons">edit</span>
+                        変更
+                      </button>
+                      <button @click="removeLogo" type="button" class="compact-btn remove-btn">
+                        <span class="material-icons">delete</span>
+                        削除
+                      </button>
                     </div>
-                    <span class="preset-name">{{ preset.label }}</span>
+                  </div>
+                  <p class="logo-status">
+                    <span class="material-icons">check_circle</span>
+                    ロゴが設定されています
+                  </p>
+                </div>
+
+                <!-- Upload Zone -->
+                <div v-else class="compact-upload-zone" @click="triggerLogoUpload" @dragover.prevent @drop.prevent="handleLogoDrop">
+                  <span class="material-icons upload-icon">cloud_upload</span>
+                  <h4>ロゴをアップロード</h4>
+                  <p>JPEG・PNG・GIF・WebP（最大5MB）</p>
+                </div>
+
+                <input
+                  id="logoFile"
+                  ref="logoFileInput"
+                  type="file"
+                  accept="image/jpeg,image/png,image/gif,image/webp"
+                  @change="handleLogoUpload"
+                  class="logo-file-input"
+                />
+              </div>
+            </div>
+
+            <!-- Color Settings Tab -->
+            <div v-if="activeTab === 'color'" class="tab-content">
+              <div class="compact-color-grid">
+                <div
+                  v-for="preset in colorPresets"
+                  :key="preset.name"
+                  @click="selectColorPreset(preset)"
+                  class="compact-color-preset"
+                  :class="{ active: templateSettings.colorTheme === preset.name }"
+                >
+                  <div class="color-preview">
+                    <div class="primary-color" :style="{ backgroundColor: preset.primary }"></div>
+                    <div class="accent-color" :style="{ backgroundColor: preset.accent }"></div>
+                  </div>
+                  <span class="preset-name">{{ preset.label }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Font Settings Tab -->
+            <div v-if="activeTab === 'font'" class="tab-content">
+              <div class="compact-font-controls">
+                <!-- Font Family -->
+                <div class="compact-font-section">
+                  <h4>フォントファミリー</h4>
+                  <div class="compact-font-grid">
+                    <div
+                      v-for="font in fontFamilyOptions"
+                      :key="font.value"
+                      @click="templateSettings.fontFamily = font.value"
+                      class="compact-font-card"
+                      :class="{ active: templateSettings.fontFamily === font.value }"
+                    >
+                      <div class="font-preview" :style="{ fontFamily: font.fontFamily }">あが</div>
+                      <div class="font-name">{{ font.label }}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Font Size -->
+                <div class="compact-font-section">
+                  <h4>フォントサイズ</h4>
+                  <div class="compact-size-options">
+                    <div
+                      v-for="size in fontSizeOptions"
+                      :key="size.value"
+                      @click="templateSettings.fontSize = size.value"
+                      class="compact-size-option"
+                      :class="{ active: templateSettings.fontSize === size.value }"
+                    >
+                      <div class="size-preview" :style="{ fontSize: size.preview }">あ</div>
+                      <div class="size-label">{{ size.label }}</div>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- Font Settings -->
-            <div class="form-section">
-              <h3>フォント設定</h3>
-              <div class="form-group">
-                <label for="fontFamily">フォントファミリー</label>
-                <select
-                  id="fontFamily"
-                  v-model="templateSettings.fontFamily"
-                  class="form-input"
-                >
-                  <option value="default">デフォルト</option>
-                  <option value="gothic">ゴシック体</option>
-                  <option value="mincho">明朝体</option>
-                  <option value="rounded">丸ゴシック</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="fontSize">フォントサイズ</label>
-                <div class="font-size-options">
-                  <label class="radio-option">
-                    <input
-                      type="radio"
-                      v-model="templateSettings.fontSize"
-                      value="small"
-                      name="fontSize"
-                    />
-                    <span class="radio-label">小</span>
-                  </label>
-                  <label class="radio-option">
-                    <input
-                      type="radio"
-                      v-model="templateSettings.fontSize"
-                      value="medium"
-                      name="fontSize"
-                    />
-                    <span class="radio-label">中</span>
-                  </label>
-                  <label class="radio-option">
-                    <input
-                      type="radio"
-                      v-model="templateSettings.fontSize"
-                      value="large"
-                      name="fontSize"
-                    />
-                    <span class="radio-label">大</span>
-                  </label>
+            <!-- Typography Settings Tab -->
+            <div v-if="activeTab === 'typography'" class="tab-content">
+              <div class="compact-typography-controls">
+                <!-- Title Font -->
+                <div class="compact-typography-section">
+                  <h4>タイトルフォント</h4>
+                  <div class="compact-typography-grid">
+                    <div
+                      v-for="font in titleFontOptions"
+                      :key="font.value"
+                      @click="templateSettings.titleFont = font.value"
+                      class="compact-typography-card"
+                      :class="{ active: templateSettings.titleFont === font.value }"
+                    >
+                      <div class="typography-preview" :style="{ fontFamily: font.fontFamily, fontWeight: font.fontWeight }">
+                        タイトル
+                      </div>
+                      <div class="typography-name">{{ font.label }}</div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
 
-            <!-- Typography Settings -->
-            <div class="form-section">
-              <h3>文字スタイル設定</h3>
-              <div class="form-group">
-                <label for="titleFont">タイトルフォント</label>
-                <select
-                  id="titleFont"
-                  v-model="templateSettings.titleFont"
-                  class="form-input"
-                >
-                  <option value="default">デフォルト</option>
-                  <option value="bold-gothic">太ゴシック</option>
-                  <option value="mincho">明朝体</option>
-                  <option value="decorative">装飾フォント</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="bodyFont">本文フォント</label>
-                <select
-                  id="bodyFont"
-                  v-model="templateSettings.bodyFont"
-                  class="form-input"
-                >
-                  <option value="default">デフォルト</option>
-                  <option value="gothic">ゴシック体</option>
-                  <option value="mincho">明朝体</option>
-                  <option value="rounded">丸ゴシック</option>
-                </select>
+                <!-- Body Font -->
+                <div class="compact-typography-section">
+                  <h4>本文フォント</h4>
+                  <div class="compact-typography-grid">
+                    <div
+                      v-for="font in bodyFontOptions"
+                      :key="font.value"
+                      @click="templateSettings.bodyFont = font.value"
+                      class="compact-typography-card"
+                      :class="{ active: templateSettings.bodyFont === font.value }"
+                    >
+                      <div class="typography-preview">
+                        本文サンプル
+                      </div>
+                      <div class="typography-name">{{ font.label }}</div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
             <!-- Action Buttons -->
-            <div class="form-actions">
+            <div class="compact-form-actions">
               <button
                 type="button"
                 @click="resetToDefaults"
                 class="btn btn-secondary"
                 :disabled="isSaving"
               >
-                デフォルトに戻す
+                リセット
               </button>
               <button
                 type="submit"
                 class="btn btn-primary"
                 :disabled="isSaving"
               >
-                {{ isSaving ? '保存中...' : '設定を保存' }}
+                {{ isSaving ? '保存中...' : '保存' }}
               </button>
             </div>
           </form>
@@ -221,18 +247,30 @@
 
       <!-- Preview Area -->
       <div class="preview-area">
-        <div class="preview-header">
-          <h2>プレビュー</h2>
-          <button
-            class="refresh-btn"
-            @click="refreshPreview"
-          >
-            更新
-          </button>
+        <div class="preview-header enhanced-preview-header">
+          <div class="preview-title">
+            <span class="material-icons">preview</span>
+            <h2>リアルタイムプレビュー</h2>
+          </div>
+          <div class="preview-controls">
+            <div class="preview-zoom">
+              <button @click="previewZoom = Math.max(0.5, previewZoom - 0.1)" class="zoom-btn">
+                <span class="material-icons">zoom_out</span>
+              </button>
+              <span class="zoom-level">{{ Math.round(previewZoom * 100) }}%</span>
+              <button @click="previewZoom = Math.min(1.5, previewZoom + 0.1)" class="zoom-btn">
+                <span class="material-icons">zoom_in</span>
+              </button>
+            </div>
+            <button @click="refreshPreview" class="refresh-btn" :disabled="isPreviewLoading">
+              <span class="material-icons">refresh</span>
+              {{ isPreviewLoading ? '更新中...' : '更新' }}
+            </button>
+          </div>
         </div>
 
         <!-- Template Preview -->
-        <div class="template-preview">
+        <div class="template-preview" :style="{ transform: `scale(${previewZoom})`, transformOrigin: 'top left' }">
           <!-- Loading State -->
           <div v-if="isPreviewLoading" class="preview-loading">
             <div class="loading-spinner"></div>
@@ -494,193 +532,219 @@
         </div>
 
         <div v-if="!isSettingsCollapsed" class="panel-content">
+          <!-- Tab Navigation -->
+          <div class="tab-navigation">
+            <button
+              v-for="tab in tabs"
+              :key="tab.id"
+              @click="activeTab = tab.id"
+              class="tab-button"
+              :class="{ active: activeTab === tab.id }"
+            >
+              <span class="material-icons">{{ tab.icon }}</span>
+              {{ tab.label }}
+            </button>
+          </div>
+
           <!-- Settings Form -->
           <form @submit.prevent="saveSettings" class="settings-form">
-            <!-- Basic Information -->
-            <div class="form-section">
-              <h3>基本情報</h3>
-              <div class="form-group">
-                <label for="businessName">事業者名</label>
-                <input
-                  id="businessName"
-                  v-model="templateSettings.businessName"
-                  type="text"
-                  placeholder="事業者名を入力"
-                  class="form-input"
-                />
-              </div>
-              <div class="form-group">
-                <label for="operatorName">鑑定者名</label>
-                <input
-                  id="operatorName"
-                  v-model="templateSettings.operatorName"
-                  type="text"
-                  placeholder="鑑定者名を入力"
-                  class="form-input"
-                />
-              </div>
-              <div class="form-group">
-                <label for="diagnosisTitle">鑑定書タイトル</label>
-                <input
-                  id="diagnosisTitle"
-                  v-model="templateSettings.diagnosisTitle"
-                  type="text"
-                  placeholder="鑑定書タイトルを入力"
-                  class="form-input"
-                />
-              </div>
-            </div>
-
-            <!-- Logo Settings -->
-            <div class="form-section">
-              <h3>ロゴ設定</h3>
-              <div class="form-group">
-                <label for="logoFile">ロゴファイル</label>
-                <div class="logo-upload-area">
-                  <div v-if="templateSettings.logoUrl" class="logo-preview">
-                    <img :src="logoImageUrl" alt="現在のロゴ" class="logo-preview-img" />
-                    <button @click="removeLogo" type="button" class="remove-logo-btn">削除</button>
+            <!-- Basic Information Tab -->
+            <div v-if="activeTab === 'basic'" class="tab-content">
+              <div class="compact-form-section">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="businessName2">事業者名</label>
+                    <input
+                      id="businessName2"
+                      v-model="templateSettings.businessName"
+                      type="text"
+                      placeholder="事業者名を入力"
+                      class="form-input"
+                    />
                   </div>
-                  <div v-else class="logo-upload-placeholder">
-                    <span class="material-icons">cloud_upload</span>
-                    <p>ロゴファイルをアップロード</p>
+                  <div class="form-group">
+                    <label for="operatorName2">鑑定者名</label>
+                    <input
+                      id="operatorName2"
+                      v-model="templateSettings.operatorName"
+                      type="text"
+                      placeholder="鑑定者名を入力"
+                      class="form-input"
+                    />
                   </div>
+                </div>
+                <div class="form-group">
+                  <label for="diagnosisTitle2">鑑定書タイトル</label>
                   <input
-                    id="logoFile"
-                    ref="logoFileInput"
-                    type="file"
-                    accept="image/*"
-                    @change="handleLogoUpload"
-                    class="logo-file-input"
+                    id="diagnosisTitle2"
+                    v-model="templateSettings.diagnosisTitle"
+                    type="text"
+                    placeholder="鑑定書タイトルを入力"
+                    class="form-input"
                   />
-                  <button @click="triggerLogoUpload" type="button" class="upload-btn">
-                    ファイルを選択
-                  </button>
                 </div>
-                <p class="form-help">JPEG、PNG、GIF、WebP形式（最大5MB）</p>
               </div>
             </div>
 
-            <!-- Color Settings -->
-            <div class="form-section">
-              <h3>カラー設定</h3>
-              <div class="form-group">
-                <label>カラーテーマ</label>
-                <div class="color-presets">
-                  <div
-                    v-for="preset in colorPresets"
-                    :key="preset.name"
-                    @click="selectColorPreset(preset)"
-                    class="color-preset"
-                    :class="{ active: templateSettings.colorTheme === preset.name }"
-                  >
-                    <div class="color-preview">
-                      <div class="primary-color" :style="{ backgroundColor: preset.primary }"></div>
-                      <div class="accent-color" :style="{ backgroundColor: preset.accent }"></div>
+            <!-- Logo Settings Tab -->
+            <div v-if="activeTab === 'logo'" class="tab-content">
+              <div class="compact-logo-settings">
+                <!-- Current Logo Preview -->
+                <div v-if="templateSettings.logoUrl" class="compact-logo-card">
+                  <div class="logo-preview-compact">
+                    <img :src="logoImageUrl" alt="現在のロゴ" class="logo-image" />
+                    <div class="logo-actions">
+                      <button @click="triggerLogoUpload" type="button" class="compact-btn change-btn">
+                        <span class="material-icons">edit</span>
+                        変更
+                      </button>
+                      <button @click="removeLogo" type="button" class="compact-btn remove-btn">
+                        <span class="material-icons">delete</span>
+                        削除
+                      </button>
                     </div>
-                    <span class="preset-name">{{ preset.label }}</span>
+                  </div>
+                  <p class="logo-status">
+                    <span class="material-icons">check_circle</span>
+                    ロゴが設定されています
+                  </p>
+                </div>
+
+                <!-- Upload Zone -->
+                <div v-else class="compact-upload-zone" @click="triggerLogoUpload" @dragover.prevent @drop.prevent="handleLogoDrop">
+                  <span class="material-icons upload-icon">cloud_upload</span>
+                  <h4>ロゴをアップロード</h4>
+                  <p>JPEG・PNG・GIF・WebP（最大5MB）</p>
+                </div>
+
+                <input
+                  id="logoFile2"
+                  ref="logoFileInput"
+                  type="file"
+                  accept="image/jpeg,image/png,image/gif,image/webp"
+                  @change="handleLogoUpload"
+                  class="logo-file-input"
+                />
+              </div>
+            </div>
+
+            <!-- Color Settings Tab -->
+            <div v-if="activeTab === 'color'" class="tab-content">
+              <div class="compact-color-grid">
+                <div
+                  v-for="preset in colorPresets"
+                  :key="preset.name"
+                  @click="selectColorPreset(preset)"
+                  class="compact-color-preset"
+                  :class="{ active: templateSettings.colorTheme === preset.name }"
+                >
+                  <div class="color-preview">
+                    <div class="primary-color" :style="{ backgroundColor: preset.primary }"></div>
+                    <div class="accent-color" :style="{ backgroundColor: preset.accent }"></div>
+                  </div>
+                  <span class="preset-name">{{ preset.label }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Font Settings Tab -->
+            <div v-if="activeTab === 'font'" class="tab-content">
+              <div class="compact-font-controls">
+                <!-- Font Family -->
+                <div class="compact-font-section">
+                  <h4>フォントファミリー</h4>
+                  <div class="compact-font-grid">
+                    <div
+                      v-for="font in fontFamilyOptions"
+                      :key="font.value"
+                      @click="templateSettings.fontFamily = font.value"
+                      class="compact-font-card"
+                      :class="{ active: templateSettings.fontFamily === font.value }"
+                    >
+                      <div class="font-preview" :style="{ fontFamily: font.fontFamily }">あが</div>
+                      <div class="font-name">{{ font.label }}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Font Size -->
+                <div class="compact-font-section">
+                  <h4>フォントサイズ</h4>
+                  <div class="compact-size-options">
+                    <div
+                      v-for="size in fontSizeOptions"
+                      :key="size.value"
+                      @click="templateSettings.fontSize = size.value"
+                      class="compact-size-option"
+                      :class="{ active: templateSettings.fontSize === size.value }"
+                    >
+                      <div class="size-preview" :style="{ fontSize: size.preview }">あ</div>
+                      <div class="size-label">{{ size.label }}</div>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- Font Settings -->
-            <div class="form-section">
-              <h3>フォント設定</h3>
-              <div class="form-group">
-                <label for="fontFamily">フォントファミリー</label>
-                <select
-                  id="fontFamily"
-                  v-model="templateSettings.fontFamily"
-                  class="form-input"
-                >
-                  <option value="default">デフォルト</option>
-                  <option value="gothic">ゴシック体</option>
-                  <option value="mincho">明朝体</option>
-                  <option value="rounded">丸ゴシック</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="fontSize">フォントサイズ</label>
-                <div class="font-size-options">
-                  <label class="radio-option">
-                    <input
-                      type="radio"
-                      v-model="templateSettings.fontSize"
-                      value="small"
-                      name="fontSize"
-                    />
-                    <span class="radio-label">小</span>
-                  </label>
-                  <label class="radio-option">
-                    <input
-                      type="radio"
-                      v-model="templateSettings.fontSize"
-                      value="medium"
-                      name="fontSize"
-                    />
-                    <span class="radio-label">中</span>
-                  </label>
-                  <label class="radio-option">
-                    <input
-                      type="radio"
-                      v-model="templateSettings.fontSize"
-                      value="large"
-                      name="fontSize"
-                    />
-                    <span class="radio-label">大</span>
-                  </label>
+            <!-- Typography Settings Tab -->
+            <div v-if="activeTab === 'typography'" class="tab-content">
+              <div class="compact-typography-controls">
+                <!-- Title Font -->
+                <div class="compact-typography-section">
+                  <h4>タイトルフォント</h4>
+                  <div class="compact-typography-grid">
+                    <div
+                      v-for="font in titleFontOptions"
+                      :key="font.value"
+                      @click="templateSettings.titleFont = font.value"
+                      class="compact-typography-card"
+                      :class="{ active: templateSettings.titleFont === font.value }"
+                    >
+                      <div class="typography-preview" :style="{ fontFamily: font.fontFamily, fontWeight: font.fontWeight }">
+                        タイトル
+                      </div>
+                      <div class="typography-name">{{ font.label }}</div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
 
-            <!-- Typography Settings -->
-            <div class="form-section">
-              <h3>文字スタイル設定</h3>
-              <div class="form-group">
-                <label for="titleFont">タイトルフォント</label>
-                <select
-                  id="titleFont"
-                  v-model="templateSettings.titleFont"
-                  class="form-input"
-                >
-                  <option value="default">デフォルト</option>
-                  <option value="bold-gothic">太ゴシック</option>
-                  <option value="mincho">明朝体</option>
-                  <option value="decorative">装飾フォント</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="bodyFont">本文フォント</label>
-                <select
-                  id="bodyFont"
-                  v-model="templateSettings.bodyFont"
-                  class="form-input"
-                >
-                  <option value="default">デフォルト</option>
-                  <option value="gothic">ゴシック体</option>
-                  <option value="mincho">明朝体</option>
-                  <option value="rounded">丸ゴシック</option>
-                </select>
+                <!-- Body Font -->
+                <div class="compact-typography-section">
+                  <h4>本文フォント</h4>
+                  <div class="compact-typography-grid">
+                    <div
+                      v-for="font in bodyFontOptions"
+                      :key="font.value"
+                      @click="templateSettings.bodyFont = font.value"
+                      class="compact-typography-card"
+                      :class="{ active: templateSettings.bodyFont === font.value }"
+                    >
+                      <div class="typography-preview">
+                        本文サンプル
+                      </div>
+                      <div class="typography-name">{{ font.label }}</div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
             <!-- Action Buttons -->
-            <div class="form-actions">
+            <div class="compact-form-actions">
               <button
                 type="button"
                 @click="resetToDefaults"
                 class="btn btn-secondary"
                 :disabled="isSaving"
               >
-                デフォルトに戻す
+                リセット
               </button>
               <button
                 type="submit"
                 class="btn btn-primary"
                 :disabled="isSaving"
               >
-                {{ isSaving ? '保存中...' : '設定を保存' }}
+                {{ isSaving ? '保存中...' : '保存' }}
               </button>
             </div>
           </form>
@@ -731,6 +795,17 @@ const errorMessage = ref('')
 const successMessage = ref('')
 const isSettingsCollapsed = ref(true)
 const isPreviewLoading = ref(true)
+const previewZoom = ref(1)
+const activeTab = ref('basic')
+
+// Tab definitions
+const tabs = [
+  { id: 'basic', label: '基本', icon: 'info' },
+  { id: 'logo', label: 'ロゴ', icon: 'image' },
+  { id: 'color', label: 'カラー', icon: 'palette' },
+  { id: 'font', label: 'フォント', icon: 'text_fields' },
+  { id: 'typography', label: 'スタイル', icon: 'title' }
+]
 
 const templateSettings = reactive<TemplateSettings>({
   businessName: '',
@@ -745,6 +820,34 @@ const templateSettings = reactive<TemplateSettings>({
   titleFont: 'default',
   bodyFont: 'default'
 })
+
+// フォント設定用のオプション定義
+const fontFamilyOptions = [
+  { value: 'default', label: 'デフォルト', description: '標準フォント', fontFamily: 'system-ui, sans-serif' },
+  { value: 'gothic', label: 'ゴシック体', description: 'すっきりとした印象', fontFamily: 'Noto Sans JP, sans-serif' },
+  { value: 'mincho', label: '明朝体', description: '上品で落ち着いた印象', fontFamily: 'Noto Serif JP, serif' },
+  { value: 'rounded', label: '丸ゴシック', description: '親しみやすい印象', fontFamily: 'M PLUS Rounded 1c, sans-serif' }
+]
+
+const fontSizeOptions = [
+  { value: 'small', label: '小', description: 'コンパクト', preview: '0.9rem' },
+  { value: 'medium', label: '中', description: '標準', preview: '1rem' },
+  { value: 'large', label: '大', description: '読みやすい', preview: '1.1rem' }
+]
+
+const titleFontOptions = [
+  { value: 'default', label: 'デフォルト', description: '標準タイトル', fontFamily: 'system-ui, sans-serif', fontWeight: 'normal' },
+  { value: 'bold-gothic', label: '太ゴシック', description: 'インパクトのあるタイトル', fontFamily: 'Noto Sans JP, sans-serif', fontWeight: 'bold' },
+  { value: 'mincho', label: '明朝体', description: '伝統的なタイトル', fontFamily: 'Noto Serif JP, serif', fontWeight: 'normal' },
+  { value: 'decorative', label: '装飾フォント', description: '特別感のあるタイトル', fontFamily: 'Zen Antique Soft, serif', fontWeight: 'normal' }
+]
+
+const bodyFontOptions = [
+  { value: 'default', label: 'デフォルト', description: '標準本文', fontFamily: 'system-ui, sans-serif' },
+  { value: 'gothic', label: 'ゴシック体', description: '読みやすい本文', fontFamily: 'Noto Sans JP, sans-serif' },
+  { value: 'mincho', label: '明朝体', description: '上品な本文', fontFamily: 'Noto Serif JP, serif' },
+  { value: 'rounded', label: '丸ゴシック', description: 'やわらかい本文', fontFamily: 'M PLUS Rounded 1c, sans-serif' }
+]
 
 // Color Presets - 落ち着いた色合い
 const colorPresets = [
@@ -965,6 +1068,18 @@ const handleLogoUpload = async (event: Event) => {
     // ファイル選択をリセット
     if (logoFileInput.value) {
       logoFileInput.value.value = ''
+    }
+  }
+}
+
+// Handle drag and drop for logo upload
+const handleLogoDrop = async (event: DragEvent) => {
+  event.preventDefault()
+  const files = event.dataTransfer?.files
+  if (files && files.length > 0) {
+    const file = files[0]
+    if (file.type.startsWith('image/')) {
+      await uploadLogoFile(file)
     }
   }
 }
@@ -1237,44 +1352,110 @@ onMounted(async () => {
   overflow: hidden;
   min-height: 1200px;
 
-  .preview-header {
+  .enhanced-preview-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 20px 24px;
     border-bottom: 1px solid #e0e0e0;
-    background: #f8f9fa;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
 
-    h2 {
-      margin: 0;
-      font-size: 1.2rem;
-      font-weight: 600;
-      color: #333;
-    }
+    .preview-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
 
-    .refresh-btn {
-      padding: 8px 16px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      background: white;
-      color: #666;
-      cursor: pointer;
-      font-size: 0.9rem;
-
-      &:hover:not(:disabled) {
-        background: #f0f0f0;
+      .material-icons {
+        color: var(--primary-main);
+        font-size: 1.5rem;
       }
 
-      &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
+      h2 {
+        margin: 0;
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #2c3e50;
+      }
+    }
+
+    .preview-controls {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+
+      .preview-zoom {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        border-radius: 8px;
+        padding: 4px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+        .zoom-btn {
+          background: none;
+          border: none;
+          padding: 6px;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: background 0.2s ease;
+          color: var(--primary-main);
+
+          &:hover {
+            background: rgba(52, 152, 219, 0.1);
+          }
+
+          .material-icons {
+            font-size: 1.2rem;
+          }
+        }
+
+        .zoom-level {
+          font-size: 0.9rem;
+          font-weight: 500;
+          color: var(--text-primary);
+          min-width: 40px;
+          text-align: center;
+        }
+      }
+
+      .refresh-btn {
+        background: linear-gradient(135deg, var(--primary-main), var(--primary-dark));
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+
+        &:hover:not(:disabled) {
+          background: linear-gradient(135deg, var(--primary-dark), var(--primary-main));
+          transform: translateY(-1px);
+          box-shadow: 0 4px 16px rgba(52, 152, 219, 0.4);
+        }
+
+        &:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+          transform: none;
+        }
+
+        .material-icons {
+          font-size: 1.1rem;
+        }
       }
     }
   }
 
   .template-preview {
     padding: 24px;
-    // 高さ制限を削除してスクロールバー不要に
+    /* 高さ制限を削除してスクロールバー不要に */
     position: relative;
 
     .preview-loading {
@@ -1561,88 +1742,438 @@ onMounted(async () => {
       }
     }
 
-    // Logo Upload Styles
-    .logo-upload-area {
-      border: 2px dashed #e1e8ed;
-      border-radius: 8px;
-      padding: 20px;
-      text-align: center;
-      transition: border-color 0.3s ease;
+    /* Enhanced Logo Settings Styles */
+    .logo-settings-enhanced {
+      .section-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 24px;
 
-      &:hover {
-        border-color: var(--primary-main);
-      }
-
-      .logo-preview {
-        position: relative;
-        display: inline-block;
-        margin-bottom: 12px;
-
-        .logo-preview-img {
-          max-width: 150px;
-          max-height: 80px;
-          border-radius: 4px;
-          border: 1px solid #e1e8ed;
+        .section-icon {
+          color: #3498db;
+          font-size: 1.5rem;
         }
 
-        .remove-logo-btn {
-          position: absolute;
-          top: -8px;
-          right: -8px;
-          background: #e74c3c;
-          color: white;
-          border: none;
-          border-radius: 50%;
-          width: 24px;
-          height: 24px;
-          font-size: 12px;
+        h3 {
+          margin: 0;
+          color: #2c3e50;
+          font-size: 1.3rem;
+          font-weight: 600;
+        }
+      }
+
+      .logo-upload-container {
+        /* Current Logo Card */
+        .current-logo-card {
+          background: white;
+          border-radius: 16px;
+          padding: 24px;
+          border: 1px solid #e9ecef;
+          box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+
+          .logo-preview-enhanced {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 120px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 2px dashed #dee2e6;
+            margin-bottom: 16px;
+            overflow: hidden;
+
+            .logo-image {
+              max-width: 200px;
+              max-height: 100px;
+              object-fit: contain;
+              border-radius: 8px;
+            }
+
+            .logo-overlay {
+              position: absolute;
+              top: 0;
+              left: 0;
+              right: 0;
+              bottom: 0;
+              background: rgba(0, 0, 0, 0.7);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 12px;
+              opacity: 0;
+              transition: opacity 0.3s ease;
+
+              .overlay-btn {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                padding: 8px 16px;
+                border: none;
+                border-radius: 8px;
+                font-size: 0.9rem;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.3s ease;
+
+                .material-icons {
+                  font-size: 1.1rem;
+                }
+
+                &.change-btn {
+                  background: var(--primary-main);
+                  color: white;
+
+                  &:hover {
+                    background: var(--primary-dark);
+                    transform: translateY(-1px);
+                  }
+                }
+
+                &.remove-btn {
+                  background: #e74c3c;
+                  color: white;
+
+                  &:hover {
+                    background: #c0392b;
+                    transform: translateY(-1px);
+                  }
+                }
+              }
+            }
+
+            &:hover .logo-overlay {
+              opacity: 1;
+            }
+          }
+
+          .logo-info {
+            .logo-status {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              margin: 0;
+              color: #27ae60;
+              font-size: 0.9rem;
+              font-weight: 500;
+
+              .status-icon {
+                font-size: 1.1rem;
+              }
+            }
+          }
+        }
+
+        /* Upload Zone */
+        .upload-zone {
+          background: white;
+          border: 2px dashed #ced4da;
+          border-radius: 16px;
+          padding: 48px 24px;
+          text-align: center;
           cursor: pointer;
+          transition: all 0.3s ease;
+          min-height: 200px;
           display: flex;
           align-items: center;
           justify-content: center;
 
           &:hover {
-            background: #c0392b;
+            border-color: var(--primary-main);
+            background: #f8f9fa;
+            transform: translateY(-2px);
+          }
+
+          .upload-content {
+            .upload-icon {
+              font-size: 3rem;
+              color: var(--primary-main);
+              margin-bottom: 16px;
+              display: block;
+            }
+
+            h4 {
+              margin: 0 0 8px 0;
+              color: var(--text-primary);
+              font-size: 1.2rem;
+              font-weight: 600;
+            }
+
+            .upload-subtitle {
+              margin: 0 0 24px 0;
+              color: var(--text-secondary);
+              font-size: 0.9rem;
+            }
+
+            .upload-specs {
+              display: flex;
+              flex-direction: column;
+              gap: 8px;
+
+              .spec-item {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                color: var(--text-secondary);
+                font-size: 0.85rem;
+
+                .material-icons {
+                  font-size: 1rem;
+                  color: var(--primary-main);
+                }
+              }
+            }
           }
         }
-      }
 
-      .logo-upload-placeholder {
-        .material-icons {
-          font-size: 2rem;
-          color: #95a5a6;
-          margin-bottom: 8px;
-        }
-
-        p {
-          color: #7f8c8d;
-          margin: 0;
-          font-size: 0.9rem;
-        }
-      }
-
-      .logo-file-input {
-        display: none;
-      }
-
-      .upload-btn {
-        background: var(--primary-main);
-        color: white;
-        border: none;
-        padding: 8px 16px;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 0.9rem;
-        margin-top: 12px;
-        transition: background 0.3s ease;
-
-        &:hover {
-          background: var(--primary-dark);
+        .logo-file-input {
+          display: none;
         }
       }
     }
 
-    // Color Presets Styles
+    /* Enhanced Font Settings Styles */
+    .font-settings-enhanced {
+      .section-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 24px;
+
+        .section-icon {
+          color: var(--primary-main);
+          font-size: 1.5rem;
+        }
+
+        h3 {
+          margin: 0;
+          color: var(--text-primary);
+          font-size: 1.3rem;
+          font-weight: 600;
+        }
+      }
+
+      .font-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+
+        .enhanced-label {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 16px;
+          font-size: 1.1rem;
+          font-weight: 600;
+          color: #2c3e50;
+
+          .material-icons {
+            color: #3498db;
+            font-size: 1.2rem;
+            font-family: 'Material Icons';
+          }
+        }
+
+        .font-family-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 16px;
+
+          @media (max-width: 768px) {
+            grid-template-columns: 1fr;
+          }
+
+          .font-family-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+
+            &:hover {
+              border-color: #3498db;
+              transform: translateY(-2px);
+              box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            }
+
+            &.active {
+              border-color: #3498db;
+              background: rgba(52, 152, 219, 0.05);
+              box-shadow: 0 4px 16px rgba(52, 152, 219, 0.2);
+            }
+
+            .font-preview {
+              font-size: 2rem;
+              margin-bottom: 12px;
+              color: var(--text-primary);
+              line-height: 1;
+            }
+
+            .font-name {
+              font-weight: 600;
+              color: var(--text-primary);
+              margin-bottom: 4px;
+            }
+
+            .font-description {
+              font-size: 0.85rem;
+              color: var(--text-secondary);
+            }
+          }
+        }
+
+        .font-size-slider {
+          .size-options {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+
+            .size-option {
+              background: white;
+              border: 2px solid #e9ecef;
+              border-radius: 12px;
+              padding: 24px;
+              text-align: center;
+              cursor: pointer;
+              transition: all 0.3s ease;
+              min-width: 120px;
+
+              &:hover {
+                border-color: var(--primary-main);
+                transform: translateY(-2px);
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+              }
+
+              &.active {
+                border-color: var(--primary-main);
+                background: rgba(52, 152, 219, 0.05);
+                box-shadow: 0 4px 16px rgba(52, 152, 219, 0.2);
+              }
+
+              .size-preview {
+                color: var(--text-primary);
+                margin-bottom: 12px;
+                line-height: 1;
+              }
+
+              .size-label {
+                font-weight: 600;
+                color: var(--text-primary);
+                margin-bottom: 4px;
+              }
+
+              .size-description {
+                font-size: 0.85rem;
+                color: var(--text-secondary);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    /* Enhanced Typography Settings Styles */
+    .typography-settings-enhanced {
+      .section-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 24px;
+
+        .section-icon {
+          color: var(--primary-main);
+          font-size: 1.5rem;
+        }
+
+        h3 {
+          margin: 0;
+          color: var(--text-primary);
+          font-size: 1.3rem;
+          font-weight: 600;
+        }
+      }
+
+      .typography-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+
+        .enhanced-label {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 16px;
+          font-size: 1.1rem;
+          font-weight: 600;
+          color: var(--text-primary);
+
+          .material-icons {
+            color: var(--primary-main);
+            font-size: 1.2rem;
+          }
+        }
+
+        .typography-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+          gap: 16px;
+
+          .typography-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+
+            &:hover {
+              border-color: #3498db;
+              transform: translateY(-2px);
+              box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            }
+
+            &.active {
+              border-color: #3498db;
+              background: rgba(52, 152, 219, 0.05);
+              box-shadow: 0 4px 16px rgba(52, 152, 219, 0.2);
+            }
+
+            .typography-preview {
+              margin-bottom: 12px;
+              color: var(--text-primary);
+              line-height: 1.4;
+
+              &.title-preview {
+                font-size: 1.5rem;
+                margin-bottom: 8px;
+              }
+
+              &.body-preview {
+                font-size: 0.9rem;
+                line-height: 1.6;
+              }
+            }
+
+            .typography-name {
+              font-weight: 600;
+              color: var(--text-primary);
+              margin-bottom: 4px;
+            }
+
+            .typography-description {
+              font-size: 0.85rem;
+              color: var(--text-secondary);
+            }
+          }
+        }
+      }
+    }
+
+    /* Color Presets Styles */
     .color-presets {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
@@ -1688,7 +2219,7 @@ onMounted(async () => {
       }
     }
 
-    // Font Size Options
+    /* Font Size Options */
     .font-size-options {
       display: flex;
       gap: 12px;

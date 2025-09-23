@@ -1,0 +1,663 @@
+/* Template Settings 専用スタイル - 最優先適用 */
+
+/* タブナビゲーション */
+.template-settings-view .tab-navigation {
+  display: flex !important;
+  background: #f8f9fa !important;
+  border-radius: 8px !important;
+  padding: 4px !important;
+  margin-bottom: 20px !important;
+  gap: 2px !important;
+}
+
+.template-settings-view .tab-button {
+  flex: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  padding: 8px 12px !important;
+  border: none !important;
+  background: transparent !important;
+  border-radius: 6px !important;
+  font-size: 0.9rem !important;
+  font-weight: 500 !important;
+  color: #666 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  min-height: 40px !important;
+}
+
+.template-settings-view .tab-button:hover {
+  background: rgba(52, 152, 219, 0.1) !important;
+  color: #3498db !important;
+}
+
+.template-settings-view .tab-button.active {
+  background: white !important;
+  color: #3498db !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.template-settings-view .tab-button .material-icons {
+  font-size: 1.1rem !important;
+  font-family: 'Material Icons' !important;
+}
+
+/* タブコンテンツ */
+.template-settings-view .tab-content {
+  min-height: 250px !important;
+  max-height: 350px !important;
+  overflow-y: auto !important;
+  padding: 16px 0 !important;
+}
+
+/* コンパクトフォームセクション */
+.template-settings-view .compact-form-section {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+}
+
+.template-settings-view .form-row {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 12px !important;
+}
+
+.template-settings-view .form-group {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+}
+
+.template-settings-view .form-input {
+  padding: 8px 12px !important;
+  border: 1px solid #ddd !important;
+  border-radius: 6px !important;
+  font-size: 0.9rem !important;
+  transition: border-color 0.2s !important;
+}
+
+.template-settings-view .form-input:focus {
+  outline: none !important;
+  border-color: #3498db !important;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.1) !important;
+}
+
+/* コンパクトロゴ設定 */
+.template-settings-view .compact-logo-settings {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 16px !important;
+}
+
+.template-settings-view .compact-logo-card {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 20px !important;
+  background: white !important;
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 12px !important;
+  width: 100% !important;
+  max-width: 300px !important;
+}
+
+.template-settings-view .logo-preview-compact {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+
+.template-settings-view .logo-preview-compact .logo-image {
+  max-width: 120px !important;
+  max-height: 80px !important;
+  object-fit: contain !important;
+  border-radius: 6px !important;
+}
+
+.template-settings-view .logo-actions {
+  display: flex !important;
+  gap: 8px !important;
+}
+
+.template-settings-view .compact-btn {
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  padding: 6px 12px !important;
+  border: none !important;
+  border-radius: 6px !important;
+  font-size: 0.8rem !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.template-settings-view .compact-btn.change-btn {
+  background: #3498db !important;
+  color: white !important;
+}
+
+.template-settings-view .compact-btn.remove-btn {
+  background: #e74c3c !important;
+  color: white !important;
+}
+
+.template-settings-view .compact-btn:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+.template-settings-view .compact-upload-zone {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  padding: 40px 20px !important;
+  border: 2px dashed #ccc !important;
+  border-radius: 12px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  background: #fafafa !important;
+  width: 100% !important;
+  max-width: 300px !important;
+}
+
+.template-settings-view .compact-upload-zone:hover {
+  border-color: #3498db !important;
+  background: #f0f8ff !important;
+}
+
+.template-settings-view .compact-upload-zone .upload-icon {
+  font-size: 2rem !important;
+  color: #3498db !important;
+  font-family: 'Material Icons' !important;
+}
+
+.template-settings-view .compact-upload-zone h4 {
+  margin: 0 !important;
+  color: #333 !important;
+  font-size: 1rem !important;
+}
+
+.template-settings-view .compact-upload-zone p {
+  margin: 0 !important;
+  color: #666 !important;
+  font-size: 0.8rem !important;
+  text-align: center !important;
+}
+
+/* コンパクトカラーグリッド */
+.template-settings-view .compact-color-grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 12px !important;
+  padding: 8px !important;
+}
+
+.template-settings-view .compact-color-preset {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 12px !important;
+  border: 2px solid #e0e0e0 !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  background: white !important;
+}
+
+.template-settings-view .compact-color-preset:hover {
+  border-color: #3498db !important;
+  transform: translateY(-2px) !important;
+}
+
+.template-settings-view .compact-color-preset.active {
+  border-color: #3498db !important;
+  background: rgba(52, 152, 219, 0.05) !important;
+}
+
+/* コンパクトフォント設定 */
+.template-settings-view .compact-font-controls {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 20px !important;
+}
+
+.template-settings-view .compact-font-section h4 {
+  margin: 0 0 12px 0 !important;
+  font-size: 1rem !important;
+  color: #333 !important;
+  font-weight: 600 !important;
+}
+
+.template-settings-view .compact-font-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 8px !important;
+}
+
+.template-settings-view .compact-font-card {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 12px !important;
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  background: white !important;
+  text-align: center !important;
+}
+
+.template-settings-view .compact-font-card:hover {
+  border-color: #3498db !important;
+  transform: translateY(-1px) !important;
+}
+
+.template-settings-view .compact-font-card.active {
+  border-color: #3498db !important;
+  background: rgba(52, 152, 219, 0.05) !important;
+}
+
+.template-settings-view .compact-font-card .font-preview {
+  font-size: 1.5rem !important;
+  color: #333 !important;
+  line-height: 1 !important;
+}
+
+.template-settings-view .compact-font-card .font-name {
+  font-size: 0.8rem !important;
+  color: #666 !important;
+  font-weight: 500 !important;
+}
+
+.template-settings-view .compact-size-options {
+  display: flex !important;
+  gap: 8px !important;
+  justify-content: center !important;
+}
+
+.template-settings-view .compact-size-option {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 4px !important;
+  padding: 12px !important;
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  background: white !important;
+  text-align: center !important;
+  min-width: 60px !important;
+}
+
+.template-settings-view .compact-size-option:hover {
+  border-color: #3498db !important;
+  transform: translateY(-1px) !important;
+}
+
+.template-settings-view .compact-size-option.active {
+  border-color: #3498db !important;
+  background: rgba(52, 152, 219, 0.05) !important;
+}
+
+/* コンパクトタイポグラフィ */
+.template-settings-view .compact-typography-controls {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 20px !important;
+}
+
+.template-settings-view .compact-typography-section h4 {
+  margin: 0 0 12px 0 !important;
+  font-size: 1rem !important;
+  color: #333 !important;
+  font-weight: 600 !important;
+}
+
+.template-settings-view .compact-typography-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 8px !important;
+}
+
+.template-settings-view .compact-typography-card {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 12px !important;
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  background: white !important;
+  text-align: center !important;
+}
+
+.template-settings-view .compact-typography-card:hover {
+  border-color: #3498db !important;
+  transform: translateY(-1px) !important;
+}
+
+.template-settings-view .compact-typography-card.active {
+  border-color: #3498db !important;
+  background: rgba(52, 152, 219, 0.05) !important;
+}
+
+.template-settings-view .compact-typography-card .typography-preview {
+  font-size: 1rem !important;
+  color: #333 !important;
+  line-height: 1.2 !important;
+}
+
+.template-settings-view .compact-typography-card .typography-name {
+  font-size: 0.8rem !important;
+  color: #666 !important;
+  font-weight: 500 !important;
+}
+
+/* コンパクトアクションボタン */
+.template-settings-view .compact-form-actions {
+  display: flex !important;
+  gap: 8px !important;
+  justify-content: flex-end !important;
+  padding: 16px 0 8px 0 !important;
+  border-top: 1px solid #e0e0e0 !important;
+  margin-top: 16px !important;
+}
+
+.template-settings-view .compact-form-actions .btn {
+  padding: 8px 16px !important;
+  border-radius: 6px !important;
+  font-size: 0.9rem !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  border: none !important;
+}
+
+.template-settings-view .compact-form-actions .btn-primary {
+  background: #3498db !important;
+  color: white !important;
+}
+
+.template-settings-view .compact-form-actions .btn-secondary {
+  background: #f8f9fa !important;
+  color: #666 !important;
+  border: 1px solid #ddd !important;
+}
+
+.template-settings-view .compact-form-actions .btn:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* フォントファミリーグリッド */
+.template-settings-view .font-family-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 16px !important;
+  width: 100% !important;
+}
+
+@media (max-width: 768px) {
+  .template-settings-view .font-family-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* フォントファミリーカード */
+.template-settings-view .font-family-card {
+  background: white !important;
+  border: 2px solid #e9ecef !important;
+  border-radius: 12px !important;
+  padding: 20px !important;
+  text-align: center !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  display: block !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.template-settings-view .font-family-card:hover {
+  border-color: #3498db !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+}
+
+.template-settings-view .font-family-card.active {
+  border-color: #3498db !important;
+  background: rgba(52, 152, 219, 0.05) !important;
+  box-shadow: 0 4px 16px rgba(52, 152, 219, 0.2) !important;
+}
+
+.template-settings-view .font-family-card .font-preview {
+  font-size: 2rem !important;
+  margin-bottom: 12px !important;
+  color: #2c3e50 !important;
+  line-height: 1 !important;
+  display: block !important;
+}
+
+.template-settings-view .font-family-card .font-name {
+  font-weight: 600 !important;
+  color: #2c3e50 !important;
+  margin-bottom: 4px !important;
+  display: block !important;
+}
+
+.template-settings-view .font-family-card .font-description {
+  font-size: 0.85rem !important;
+  color: #566573 !important;
+  display: block !important;
+}
+
+/* フォントサイズオプション */
+.template-settings-view .size-options {
+  display: flex !important;
+  gap: 16px !important;
+  justify-content: center !important;
+  flex-wrap: wrap !important;
+}
+
+.template-settings-view .size-option {
+  background: white !important;
+  border: 2px solid #e9ecef !important;
+  border-radius: 12px !important;
+  padding: 24px !important;
+  text-align: center !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  min-width: 120px !important;
+  flex: 1 !important;
+  max-width: 150px !important;
+}
+
+.template-settings-view .size-option:hover {
+  border-color: #3498db !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+}
+
+.template-settings-view .size-option.active {
+  border-color: #3498db !important;
+  background: rgba(52, 152, 219, 0.05) !important;
+  box-shadow: 0 4px 16px rgba(52, 152, 219, 0.2) !important;
+}
+
+.template-settings-view .size-preview {
+  color: #2c3e50 !important;
+  margin-bottom: 12px !important;
+  line-height: 1 !important;
+  display: block !important;
+}
+
+.template-settings-view .size-label {
+  font-weight: 600 !important;
+  color: #2c3e50 !important;
+  margin-bottom: 4px !important;
+  display: block !important;
+}
+
+.template-settings-view .size-description {
+  font-size: 0.85rem !important;
+  color: #566573 !important;
+  display: block !important;
+}
+
+/* タイポグラフィグリッド */
+.template-settings-view .typography-grid {
+  display: grid !important;
+  grid-template-columns: repeat(1, 1fr) !important;
+  gap: 16px !important;
+  width: 100% !important;
+}
+
+@media (min-width: 768px) {
+  .template-settings-view .typography-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* タイポグラフィカード */
+.template-settings-view .typography-card {
+  background: white !important;
+  border: 2px solid #e9ecef !important;
+  border-radius: 12px !important;
+  padding: 20px !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  display: block !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.template-settings-view .typography-card:hover {
+  border-color: #3498db !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+}
+
+.template-settings-view .typography-card.active {
+  border-color: #3498db !important;
+  background: rgba(52, 152, 219, 0.05) !important;
+  box-shadow: 0 4px 16px rgba(52, 152, 219, 0.2) !important;
+}
+
+.template-settings-view .typography-preview {
+  margin-bottom: 12px !important;
+  color: #2c3e50 !important;
+  line-height: 1.4 !important;
+  display: block !important;
+}
+
+.template-settings-view .typography-preview.title-preview {
+  font-size: 1.5rem !important;
+  margin-bottom: 8px !important;
+}
+
+.template-settings-view .typography-preview.body-preview {
+  font-size: 0.9rem !important;
+  line-height: 1.6 !important;
+}
+
+.template-settings-view .typography-name {
+  font-weight: 600 !important;
+  color: #2c3e50 !important;
+  margin-bottom: 4px !important;
+  display: block !important;
+}
+
+.template-settings-view .typography-description {
+  font-size: 0.85rem !important;
+  color: #566573 !important;
+  display: block !important;
+}
+
+/* セクションヘッダー */
+.template-settings-view .section-header {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  margin-bottom: 24px !important;
+}
+
+.template-settings-view .section-icon {
+  color: #3498db !important;
+  font-size: 1.5rem !important;
+  font-family: 'Material Icons' !important;
+}
+
+.template-settings-view .enhanced-label {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin-bottom: 16px !important;
+  font-size: 1.1rem !important;
+  font-weight: 600 !important;
+  color: #2c3e50 !important;
+}
+
+.template-settings-view .enhanced-label .material-icons {
+  color: #3498db !important;
+  font-size: 1.2rem !important;
+  font-family: 'Material Icons' !important;
+}
+
+/* カラープリセット */
+.template-settings-view .color-presets {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)) !important;
+  gap: 12px !important;
+  margin-top: 8px !important;
+}
+
+.template-settings-view .color-preset {
+  padding: 12px !important;
+  border: 2px solid #e1e8ed !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  text-align: center !important;
+  background: white !important;
+}
+
+.template-settings-view .color-preset:hover {
+  border-color: #3498db !important;
+  transform: translateY(-2px) !important;
+}
+
+.template-settings-view .color-preset.active {
+  border-color: #3498db !important;
+  background: rgba(52, 152, 219, 0.1) !important;
+}
+
+.template-settings-view .color-preview {
+  display: flex !important;
+  height: 24px !important;
+  border-radius: 4px !important;
+  overflow: hidden !important;
+  margin-bottom: 8px !important;
+}
+
+.template-settings-view .color-preview .primary-color,
+.template-settings-view .color-preview .accent-color {
+  flex: 1 !important;
+}
+
+.template-settings-view .preset-name {
+  font-size: 0.85rem !important;
+  color: #566573 !important;
+  font-weight: 500 !important;
+}
