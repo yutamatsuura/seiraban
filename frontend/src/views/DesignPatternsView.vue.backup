@@ -23,7 +23,7 @@
       </div>
 
       <!-- メインコンテンツエリア -->
-      <div class="main-content" :class="{ 'panel-closed': !isPanelOpen }">
+      <div class="main-content">
         <!-- プレビューエリア -->
         <div class="preview-area">
           <div class="preview-header">
@@ -679,15 +679,11 @@
         </div>
 
         <!-- 設定パネル -->
-        <div class="settings-sidebar" :class="{ 'collapsed': !isPanelOpen }">
-          <!-- パネル開閉ボタン -->
-          <button class="panel-toggle" @click="isPanelOpen = !isPanelOpen">
-            <span class="toggle-icon">{{ isPanelOpen ? '▶' : '◀' }}</span>
-            <span class="toggle-text">{{ isPanelOpen ? '設定を閉じる' : '設定を開く' }}</span>
-          </button>
+        <div class="settings-sidebar">
+        <!-- 読み込み中表示 -->
 
-          <!-- カスタマイズ設定 -->
-          <div class="settings-panel" v-show="isPanelOpen">
+        <!-- カスタマイズ設定 -->
+        <div class="settings-panel">
         <h3>カスタマイズ設定</h3>
 
         <!-- 基本情報設定 -->
@@ -782,10 +778,10 @@
           >
             この設定を保存する
           </button>
-          </div>
+        </div>
         </div>
       </div>
-      </div>
+    </div>
     </div>
   </MainLayout>
 </template>
@@ -799,9 +795,6 @@ import MainLayout from '@/components/layout/MainLayout.vue'
 const router = useRouter()
 const selectedPattern = ref('clean')
 const selectedTheme = ref('default')
-
-// パネル開閉状態
-const isPanelOpen = ref(true)
 
 // 設定用の reactive variables
 const businessName = ref('')
@@ -1082,20 +1075,10 @@ onMounted(() => {
   gap: 32px;
   margin-top: 32px;
   min-height: calc(100vh - 300px);
-  transition: margin-right 0.3s ease;
-
-  &.panel-closed {
-    margin-right: 60px; // 折りたたみボタン分のスペース
-  }
-
-  &:not(.panel-closed) {
-    margin-right: 420px; // パネル幅 + ギャップ
-  }
 
   @media (max-width: 1200px) {
     flex-direction: column;
     gap: 24px;
-    margin-right: 0;
   }
 }
 
@@ -1136,7 +1119,6 @@ onMounted(() => {
     cursor: pointer;
     transition: all 0.2s ease;
     font-weight: 500;
-    color: #2c3e50 !important;
 
     &:hover {
       border-color: var(--primary-main);
@@ -1146,7 +1128,7 @@ onMounted(() => {
     &.active {
       border-color: var(--primary-main);
       background: var(--primary-main);
-      color: white !important;
+      color: white;
     }
   }
 }
@@ -1187,95 +1169,20 @@ onMounted(() => {
 
 // 設定サイドバー
 .settings-sidebar {
-  position: fixed;
-  top: 120px;
-  right: 20px;
   width: 400px;
   background: white;
   border-radius: 16px;
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.08);
   border: 1px solid #e8eaed;
-  max-height: calc(100vh - 140px);
-  overflow-y: auto;
-  z-index: 1000;
-  transition: transform 0.3s ease, width 0.3s ease;
-
-  &.collapsed {
-    width: 60px;
-    transform: translateX(340px);
-  }
+  position: relative;
+  max-height: fit-content;
+  top: 0;
 
   @media (max-width: 1200px) {
-    position: relative;
     width: 100%;
-    top: 0;
-    right: 0;
     order: -1;
-    max-height: none;
-    overflow-y: visible;
-
-    &.collapsed {
-      width: 100%;
-      transform: none;
-    }
-  }
-}
-
-// パネル開閉ボタン
-.panel-toggle {
-  position: absolute;
-  top: 20px;
-  left: -50px;
-  width: 40px;
-  height: 80px;
-  background: white;
-  border: 1px solid #e8eaed;
-  border-right: none;
-  border-radius: 12px 0 0 12px;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  box-shadow: -4px 0 8px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
-  color: #2c3e50 !important;
-
-  &:hover {
-    background: #f8f9fa;
-    transform: translateX(-2px);
   }
 
-  .toggle-icon {
-    font-size: 14px;
-    color: #2c3e50 !important;
-  }
-
-  .toggle-text {
-    font-size: 10px;
-    writing-mode: vertical-rl;
-    text-orientation: mixed;
-    color: #666 !important;
-    white-space: nowrap;
-  }
-
-  @media (max-width: 1200px) {
-    position: relative;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 40px;
-    border-radius: 8px;
-    border: 1px solid #e8eaed;
-    flex-direction: row;
-    margin-bottom: 10px;
-
-    .toggle-text {
-      writing-mode: horizontal-tb;
-      text-orientation: initial;
-    }
-  }
 }
 
 // 設定パネル - 緊急修正：最強詳細度
@@ -1458,6 +1365,7 @@ onMounted(() => {
       }
     }
   }
+}
 
 // 保存セクション
 .save-section {
@@ -3040,78 +2948,22 @@ onMounted(() => {
   }
 }
 
-/* 緊急修正: 設定パネルの文字色問題対策 - 正確なセレクター */
-.design-patterns .settings-sidebar .settings-panel,
-.design-patterns .settings-sidebar .settings-panel *,
-.design-patterns .settings-sidebar .settings-panel *::before,
-.design-patterns .settings-sidebar .settings-panel *::after,
-.design-patterns .settings-sidebar .settings-panel h1,
-.design-patterns .settings-sidebar .settings-panel h2,
-.design-patterns .settings-sidebar .settings-panel h3,
-.design-patterns .settings-sidebar .settings-panel h4,
-.design-patterns .settings-sidebar .settings-panel h5,
-.design-patterns .settings-sidebar .settings-panel h6,
-.design-patterns .settings-sidebar .settings-panel p,
-.design-patterns .settings-sidebar .settings-panel span,
-.design-patterns .settings-sidebar .settings-panel div,
-.design-patterns .settings-sidebar .settings-panel label,
-.design-patterns .settings-sidebar .settings-panel .setting-section,
-.design-patterns .settings-sidebar .settings-panel .setting-row,
-.design-patterns .settings-sidebar .settings-panel .theme-colors,
-.design-patterns .settings-sidebar .settings-panel .theme-btn {
+/* 緊急修正: 設定パネルの文字色問題対策 - 最強詳細度 */
+.design-patterns .main-content .settings-sidebar .settings-panel,
+.design-patterns .main-content .settings-sidebar .settings-panel *,
+.design-patterns .main-content .settings-sidebar .settings-panel h3,
+.design-patterns .main-content .settings-sidebar .settings-panel h4,
+.design-patterns .main-content .settings-sidebar .settings-panel label,
+.design-patterns .main-content .settings-sidebar .settings-panel .setting-section,
+.design-patterns .main-content .settings-sidebar .settings-panel .setting-row {
   color: #000000 !important;
   background-color: transparent !important;
 }
 
-.design-patterns .settings-sidebar .settings-panel input,
-.design-patterns .settings-sidebar .settings-panel select,
-.design-patterns .settings-sidebar .settings-panel textarea {
+.design-patterns .main-content .settings-sidebar .settings-panel input,
+.design-patterns .main-content .settings-sidebar .settings-panel select {
   color: #000000 !important;
   background-color: #ffffff !important;
   border: 1px solid #cccccc !important;
-}
-
-/* さらに強力な上書き - インラインスタイルレベル */
-div.design-patterns div.settings-sidebar div.settings-panel * {
-  color: #000000 !important;
-}
-
-/* 核攻撃レベルの上書き */
-.design-patterns .settings-sidebar .settings-panel h3,
-.design-patterns .settings-sidebar .settings-panel h4,
-.design-patterns .settings-sidebar .settings-panel label {
-  color: #000000 !important;
-}
-
-[data-v-2bd0b28c] .settings-panel * {
-  color: #000000 !important;
-}
-
-/* 時間経過でのCSS変化を完全に防ぐ最終手段 */
-.settings-panel,
-.settings-panel *,
-.settings-panel label,
-.settings-panel h3,
-.settings-panel h4,
-.settings-panel span,
-.settings-panel div {
-  color: #000000 !important;
-  animation: none !important;
-  transition: none !important;
-}
-
-.panel-toggle,
-.panel-toggle * {
-  color: #2c3e50 !important;
-  animation: none !important;
-}
-
-/* パターンボタンの文字色修正 */
-.design-patterns .pattern-selector .pattern-btn {
-  color: #2c3e50 !important;
-}
-
-.design-patterns .pattern-selector .pattern-btn.active {
-  color: #ffffff !important;
 }
 </style>

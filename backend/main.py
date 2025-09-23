@@ -80,6 +80,24 @@ class User(Base):
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
     deleted_at = Column(DateTime, nullable=True)
     kantei_records = relationship("KanteiRecord", back_populates="user")
+    template_settings = relationship("TemplateSettingsDB", back_populates="user", uselist=False)
+
+class TemplateSettingsDB(Base):
+    __tablename__ = "template_settings"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True, unique=True)
+    business_name = Column(String(255), nullable=False, default="占いサロン 星花")
+    operator_name = Column(String(255), nullable=False, default="星野 花子")
+    color_theme = Column(String(50), nullable=False, default="default")
+    font_family = Column(String(100), nullable=False, default="default")
+    font_scale = Column(String(10), nullable=False, default="1.0")
+    layout_style = Column(String(50), nullable=False, default="standard")
+    logo_url = Column(String(500), nullable=True)
+    custom_css = Column(String, nullable=True)
+    settings_version = Column(String(20), nullable=False, default="1.0")
+    created_at = Column(DateTime, default=func.now(), nullable=False)
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
+    user = relationship("User", back_populates="template_settings")
 
 class KanteiRecord(Base):
     __tablename__ = "kantei_records"
@@ -243,37 +261,77 @@ class TemplateSettings(BaseModel):
     logo_url: Optional[str] = None
     custom_css: Optional[str] = None
 
-# インメモリストレージ（本番ではデータベース使用）
-# メモリ内ストレージを削除 - 全てデータベースベースに統一
-
-# インメモリテンプレート設定ストレージ（ユーザー固有・簡易実装）
-user_template_settings_storage = {}  # user_id -> settings
-
-# デフォルトテンプレート設定
-default_template_settings = {
-    "business_name": "占いサロン 星花",
-    "operator_name": "星野 花子",
-    "color_theme": "default",
-    "font_family": "default",
-    "font_scale": 1.0,
-    "layout_style": "standard",
-    "logo_url": None,
-    "custom_css": None
-}
-
+# データベース操作関数
 def get_user_template_settings(user_id: int):
-    """ユーザーのテンプレート設定を取得（存在しない場合はデフォルト設定を返す）"""
-    if user_id not in user_template_settings_storage:
-        user_template_settings_storage[user_id] = default_template_settings.copy()
-    return user_template_settings_storage[user_id]
+    """ユーザーのテンプレート設定を取得（存在しない場合はデフォルト設定を作成）"""
+    db = get_database_session()
+    try:
+        settings = db.query(TemplateSettingsDB).filter(TemplateSettingsDB.user_id == user_id).first()
+
+        if not settings:
+            # 設定が存在しない場合はデフォルトを作成
+            settings = TemplateSettingsDB(
+                user_id=user_id,
+                business_name="占いサロン 星花",
+                operator_name="星野 花子",
+                color_theme="default",
+                font_family="default",
+                font_scale="1.0",
+                layout_style="standard"
+            )
+            db.add(settings)
+            db.commit()
+            db.refresh(settings)
+
+        # Pydanticモデル形式で返す
+        return {
+            "business_name": settings.business_name,
+            "operator_name": settings.operator_name,
+            "color_theme": settings.color_theme,
+            "font_family": settings.font_family,
+            "font_scale": float(settings.font_scale),
+            "layout_style": settings.layout_style,
+            "logo_url": settings.logo_url,
+            "custom_css": settings.custom_css
+        }
+    finally:
+        db.close()
 
 def update_user_template_settings(user_id: int, settings_update: dict):
     """ユーザーのテンプレート設定を更新"""
-    current_settings = get_user_template_settings(user_id)
-    for key, value in settings_update.items():
-        if value is not None:
-            current_settings[key] = value
-    return current_settings
+    db = get_database_session()
+    try:
+        settings = db.query(TemplateSettingsDB).filter(TemplateSettingsDB.user_id == user_id).first()
+
+        if not settings:
+            # 設定が存在しない場合は新規作成
+            settings = TemplateSettingsDB(user_id=user_id)
+            db.add(settings)
+
+        # 更新
+        for key, value in settings_update.items():
+            if value is not None and hasattr(settings, key):
+                if key == "font_scale":
+                    setattr(settings, key, str(value))
+                else:
+                    setattr(settings, key, value)
+
+        db.commit()
+        db.refresh(settings)
+
+        # Pydanticモデル形式で返す
+        return {
+            "business_name": settings.business_name,
+            "operator_name": settings.operator_name,
+            "color_theme": settings.color_theme,
+            "font_family": settings.font_family,
+            "font_scale": float(settings.font_scale),
+            "layout_style": settings.layout_style,
+            "logo_url": settings.logo_url,
+            "custom_css": settings.custom_css
+        }
+    finally:
+        db.close()
 
 # データベースヘルパー関数
 def get_kantei_record_by_id(db, record_id: int):

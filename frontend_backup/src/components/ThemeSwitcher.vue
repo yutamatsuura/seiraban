@@ -1,0 +1,225 @@
+<template>
+  <div class="theme-switcher">
+    <div class="theme-switcher-trigger" @click="showSelector = !showSelector">
+      <span class="theme-label">テーマ</span>
+      <span class="theme-name">{{ currentTheme.name }}</span>
+      <span class="theme-arrow">▼</span>
+    </div>
+
+    <div v-if="showSelector" class="theme-selector" @click.stop>
+      <h3>デザインテーマ選択</h3>
+      <div class="theme-grid">
+        <div
+          v-for="theme in themes"
+          :key="theme.id"
+          class="theme-option"
+          :class="{ active: currentThemeId === theme.id }"
+          @click="selectTheme(theme.id)"
+        >
+          <div class="theme-preview" :style="{ background: theme.preview }"></div>
+          <div class="theme-info">
+            <div class="theme-option-name">{{ theme.name }}</div>
+            <div class="theme-description">{{ theme.description }}</div>
+          </div>
+        </div>
+      </div>
+      <button @click="showSelector = false" class="close-button">閉じる</button>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
+
+interface Theme {
+  id: string
+  name: string
+  description: string
+  preview: string
+}
+
+const currentThemeId = ref('default')
+const showSelector = ref(false)
+
+const themes: Theme[] = [
+  {
+    id: 'default',
+    name: 'デフォルト',
+    description: 'プロフェッショナルでバランスの取れたデザイン',
+    preview: 'linear-gradient(135deg, #34495e 0%, #2c3e50 100%)'
+  },
+  {
+    id: 'minimal',
+    name: 'ミニマル',
+    description: 'シンプルで洗練されたクリーンなデザイン',
+    preview: 'linear-gradient(135deg, #2c3e50 0%, #1a252f 100%)'
+  },
+  {
+    id: 'elegant',
+    name: 'エレガント',
+    description: '上品で伝統的な格調高いデザイン',
+    preview: 'linear-gradient(135deg, #1a365d 0%, #0f2027 100%)'
+  },
+  {
+    id: 'modern',
+    name: 'モダン',
+    description: '現代的でダイナミックなデザイン',
+    preview: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)'
+  }
+]
+
+const currentTheme = computed(() => {
+  return themes.find(t => t.id === currentThemeId.value) || themes[0]
+})
+
+const selectTheme = (themeId: string) => {
+  currentThemeId.value = themeId
+  document.documentElement.setAttribute('data-theme', themeId)
+  localStorage.setItem('selected-theme', themeId)
+  showSelector.value = false
+}
+
+onMounted(() => {
+  const savedTheme = localStorage.getItem('selected-theme')
+  if (savedTheme && themes.find(t => t.id === savedTheme)) {
+    selectTheme(savedTheme)
+  }
+})
+</script>
+
+<style scoped lang="scss">
+@import '@/styles/variables.scss';
+
+.theme-switcher {
+  position: relative;
+}
+
+.theme-switcher-trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: 1px solid var(--border-color);
+  background: var(--background-paper);
+
+  &:hover {
+    background: rgba(52, 73, 94, 0.05);
+  }
+
+  .theme-label {
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .theme-name {
+    font-size: var(--font-size-sm);
+    font-weight: $font-weight-medium;
+    color: var(--text-primary);
+  }
+
+  .theme-arrow {
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+    transition: transform var(--transition-fast);
+  }
+
+  &.open .theme-arrow {
+    transform: rotate(180deg);
+  }
+}
+
+.theme-selector {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: var(--background-paper);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-large);
+  z-index: 1000;
+  min-width: 320px;
+
+  h3 {
+    margin: 0 0 var(--spacing-md) 0;
+    font-size: var(--font-size-lg);
+    font-weight: $font-weight-medium;
+    color: var(--text-primary);
+  }
+
+  .theme-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .theme-option {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+
+    &:hover {
+      border-color: var(--primary-main);
+      background: rgba(52, 73, 94, 0.05);
+    }
+
+    &.active {
+      border-color: var(--primary-main);
+      background: rgba(52, 73, 94, 0.1);
+    }
+
+    .theme-preview {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-md);
+      flex-shrink: 0;
+      border: 1px solid var(--border-color);
+    }
+
+    .theme-info {
+      flex: 1;
+
+      .theme-option-name {
+        font-size: var(--font-size-base);
+        font-weight: $font-weight-medium;
+        color: var(--text-primary);
+        margin-bottom: var(--spacing-xs);
+      }
+
+      .theme-description {
+        font-size: var(--font-size-xs);
+        color: var(--text-secondary);
+        line-height: var(--line-height-base);
+      }
+    }
+  }
+
+  .close-button {
+    width: 100%;
+    padding: 10px 16px;
+    background: var(--primary-main);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    font-weight: $font-weight-medium;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+
+    &:hover {
+      background: var(--primary-dark);
+    }
+  }
+}
+</style>

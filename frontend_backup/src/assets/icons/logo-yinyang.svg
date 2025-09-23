@@ -1,0 +1,40 @@
+<svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+  <!-- 外縁円 -->
+  <circle cx="24" cy="24" r="22" fill="none" stroke="#5d4037" stroke-width="1"/>
+
+  <!-- 陰陽シンボル（中央） -->
+  <g transform="translate(24,24)">
+    <!-- 陰陽の基本円 -->
+    <circle cx="0" cy="0" r="8" fill="#5d4037"/>
+
+    <!-- 陰の部分（上半分） -->
+    <path d="M 0,-8 A 4,4 0 0,1 0,0 A 8,8 0 0,1 0,8 A 4,4 0 0,1 0,0 A 8,8 0 0,0 0,-8"
+          fill="#fff8e1"/>
+
+    <!-- 陽の小円 -->
+    <circle cx="0" cy="-4" r="2" fill="#5d4037"/>
+
+    <!-- 陰の小円 -->
+    <circle cx="0" cy="4" r="2" fill="#fff8e1"/>
+  </g>
+
+  <!-- 九つの要素を陰陽バランスで配置 -->
+  <!-- 陽の要素（上側、奇数） -->
+  <circle cx="24" cy="6" r="1.5" fill="#5d4037"/>
+  <circle cx="35" cy="12" r="1.2" fill="#5d4037"/>
+  <circle cx="39" cy="24" r="1.2" fill="#5d4037"/>
+  <circle cx="35" cy="36" r="1.2" fill="#5d4037"/>
+  <circle cx="13" cy="12" r="1.2" fill="#5d4037"/>
+
+  <!-- 陰の要素（下側、偶数） -->
+  <circle cx="24" cy="42" r="1.5" fill="#fff8e1" stroke="#5d4037" stroke-width="0.5"/>
+  <circle cx="13" cy="36" r="1.2" fill="#fff8e1" stroke="#5d4037" stroke-width="0.5"/>
+  <circle cx="9" cy="24" r="1.2" fill="#fff8e1" stroke="#5d4037" stroke-width="0.5"/>
+
+  <!-- 調和を表す曲線 -->
+  <path d="M 24 6 Q 39 12 39 24 Q 39 36 24 42 Q 9 36 9 24 Q 9 12 24 6"
+        fill="none" stroke="#5d4037" stroke-width="0.5" opacity="0.4"/>
+
+  <!-- 内側の調和円 -->
+  <circle cx="24" cy="24" r="16" fill="none" stroke="#fff8e1" stroke-width="0.3" opacity="0.6"/>
+</svg>

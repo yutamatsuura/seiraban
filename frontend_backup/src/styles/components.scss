@@ -1,0 +1,202 @@
+// 統一されたコンポーネントスタイル
+@import './variables.scss';
+
+// カードコンポーネント
+.card {
+  @include card;
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 1px solid var(--border-light);
+
+    .card-title {
+      @include section-title;
+      margin: 0;
+    }
+  }
+
+  .card-body {
+    // カード内のコンテンツ
+  }
+}
+
+// バッジコンポーネント
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: $font-weight-medium;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  &.badge-primary {
+    background: rgba(52, 73, 94, 0.1);
+    color: var(--primary-main);
+  }
+
+  &.badge-success {
+    background: rgba(22, 160, 133, 0.1);
+    color: var(--success-main);
+  }
+
+  &.badge-warning {
+    background: rgba(243, 156, 18, 0.1);
+    color: var(--warning-main);
+  }
+
+  &.badge-error {
+    background: rgba(231, 76, 60, 0.1);
+    color: var(--error-main);
+  }
+}
+
+// ボタンコンポーネント
+.btn {
+  @include button-base;
+
+  &.btn-primary {
+    @include button-primary;
+  }
+
+  &.btn-secondary {
+    @include button-secondary;
+  }
+
+  &.btn-small {
+    @include button-small;
+  }
+
+  &.btn-large {
+    @include button-large;
+  }
+}
+
+// フォームコンポーネント
+.form-group {
+  margin-bottom: var(--spacing-md);
+
+  .form-label {
+    @include form-label;
+  }
+
+  .form-input {
+    @include form-input;
+  }
+
+  .form-textarea {
+    @include form-input;
+    min-height: 100px;
+    resize: vertical;
+  }
+
+  .form-select {
+    @include form-input;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 12px center;
+    background-repeat: no-repeat;
+    background-size: 16px;
+    padding-right: 40px;
+  }
+
+  .form-error {
+    font-size: var(--font-size-xs);
+    color: var(--error-main);
+    margin-top: var(--spacing-xs);
+  }
+
+  .form-help {
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+    margin-top: var(--spacing-xs);
+  }
+}
+
+// ローディング状態
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xl);
+  color: var(--text-secondary);
+
+  .loading-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border-color);
+    border-top: 2px solid var(--primary-main);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: var(--spacing-sm);
+  }
+}
+
+// 空の状態
+.empty-state {
+  text-align: center;
+  padding: var(--spacing-2xl) var(--spacing-xl);
+
+  .empty-icon {
+    font-size: 48px;
+    color: var(--text-disabled);
+    margin-bottom: var(--spacing-md);
+
+    &.material-icons {
+      font-size: 48px;
+    }
+  }
+
+  .empty-title {
+    @include section-title;
+    color: var(--text-secondary);
+  }
+
+  .empty-text {
+    @include body-text;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-lg);
+  }
+}
+
+// ユーティリティクラス
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-success { color: var(--success-main); }
+.text-warning { color: var(--warning-main); }
+.text-error { color: var(--error-main); }
+
+.font-bold { font-weight: $font-weight-bold; }
+.font-medium { font-weight: $font-weight-medium; }
+.font-regular { font-weight: $font-weight-regular; }
+
+// アニメーション
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: all var(--transition-normal);
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
+}

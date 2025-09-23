@@ -1,0 +1,23 @@
+<svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+  <!-- ミニマルな星羅盤ロゴ - シンプルで洗練されたデザイン -->
+  <defs>
+    <linearGradient id="minimalGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a237e"/>
+      <stop offset="100%" style="stop-color:#3f51b5"/>
+    </linearGradient>
+  </defs>
+
+  <!-- シンプルな星マーク -->
+  <g transform="translate(24,24)">
+    <polygon points="0,-12 3,-3 12,-3 5,3 8,12 0,7 -8,12 -5,3 -12,-3 -3,-3"
+             fill="url(#minimalGradient)"
+             stroke="#ffffff"
+             stroke-width="1"/>
+  </g>
+
+  <!-- 4つの小さな点（方位を表現） -->
+  <circle cx="24" cy="8" r="2" fill="#1a237e"/>
+  <circle cx="40" cy="24" r="2" fill="#1a237e"/>
+  <circle cx="24" cy="40" r="2" fill="#1a237e"/>
+  <circle cx="8" cy="24" r="2" fill="#1a237e"/>
+</svg>

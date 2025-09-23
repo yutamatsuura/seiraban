@@ -1,0 +1,63 @@
+// エレガントテーマ - 上品で伝統的なデザイン
+:root[data-theme="elegant"] {
+  // Primary colors - 深みのある紺と金のアクセント
+  --primary-main: #1a365d;
+  --primary-light: #2d4a6b;
+  --primary-dark: #0f2027;
+
+  // Secondary colors - 金とブロンズ
+  --secondary-main: #b8860b;
+  --secondary-light: #daa520;
+  --secondary-dark: #996f00;
+
+  // Background colors - 温かみのあるトーン
+  --background-default: #fefefe;
+  --background-paper: #f7f5f3;
+  --background-dark: linear-gradient(135deg, #1a365d 0%, #0f2027 100%);
+
+  // Text colors - よりコントラストの高い
+  --text-primary: #1a202c;
+  --text-secondary: #4a5568;
+  --text-disabled: #a0aec0;
+
+  // Border colors - 上品なベージュ
+  --border-color: #e2e0dc;
+  --border-light: #f0eeea;
+
+  // Shadows - より深く上品
+  --shadow-1: 0 2px 4px rgba(26, 54, 93, 0.12);
+  --shadow-2: 0 4px 8px rgba(26, 54, 93, 0.15);
+  --shadow-3: 0 8px 16px rgba(26, 54, 93, 0.18);
+  --shadow-large: 0 16px 32px rgba(26, 54, 93, 0.22);
+
+  // Spacing - ゆったりとした間隔
+  --spacing-xs: 6px;
+  --spacing-sm: 12px;
+  --spacing-md: 20px;
+  --spacing-lg: 32px;
+  --spacing-xl: 48px;
+  --spacing-2xl: 64px;
+
+  // Border radius - よりクラシカル
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+
+  // Typography - より読みやすく
+  --font-size-xs: 0.8rem;
+  --font-size-sm: 0.9rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.2rem;
+  --font-size-xl: 1.4rem;
+  --font-size-2xl: 1.7rem;
+  --font-size-3xl: 2.1rem;
+  --font-size-4xl: 2.6rem;
+
+  --line-height-tight: 1.3;
+  --line-height-base: 1.6;
+  --line-height-relaxed: 1.8;
+
+  // アクセントカラー
+  --accent-gold: #b8860b;
+  --accent-bronze: #cd7f32;
+}

@@ -1,0 +1,540 @@
+// 鑑定書テンプレート共通スタイル
+// PreviewView.vue と DesignPatternsView.vue で共有
+
+// Pattern A: クリーン&コンパクト（実際のPreviewView.vueのスタイル）
+.template-header.modern-minimal {
+  background: white;
+  border: 2px solid var(--primary-color, #3498db);
+  border-radius: 8px;
+  margin-bottom: 1px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  .header-background {
+    display: none;
+  }
+
+  .header-content {
+    padding: 20px 24px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 20px;
+    align-items: center;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+      text-align: center;
+      gap: 16px;
+    }
+  }
+
+  // Logo Section
+  .logo-section {
+    .logo-container {
+      width: 60px;
+      height: 60px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #e0e0e0;
+
+      .logo-image {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+    }
+
+    .logo-placeholder {
+      width: 120px;
+      height: 50px;
+      background: #f5f5f5;
+      border: 2px dashed #ccc;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+
+      .logo-placeholder-content {
+        color: #999;
+        font-size: 10px;
+        text-align: center;
+        line-height: 1.2;
+      }
+
+      .logo-image {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        border-radius: 6px;
+      }
+    }
+  }
+
+  // Title Section
+  .title-section {
+    .title-ornament {
+      display: none;
+    }
+
+    .diagnosis-title {
+      font-size: 1.8rem;
+      font-weight: 600;
+      margin: 0;
+      color: var(--primary-color, #3498db);
+      line-height: 1.3;
+
+      @media (max-width: 768px) {
+        font-size: 1.4rem;
+      }
+    }
+  }
+
+  // Business Section
+  .business-section {
+    text-align: right;
+
+    @media (max-width: 768px) {
+      text-align: center;
+    }
+
+    .business-card {
+      background: none;
+      border: none;
+      padding: 0;
+
+      .business-name {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0 0 4px 0;
+        color: var(--primary-color, #3498db);
+      }
+
+      .operator-name {
+        margin: 0;
+        font-size: 0.9rem;
+        color: #666;
+
+        .operator-label {
+          margin-right: 4px;
+        }
+
+        .operator-value {
+          font-weight: 500;
+          color: #333;
+        }
+      }
+    }
+  }
+
+  // Date Section
+  .date-section {
+    background: #f8f9fa;
+    border-top: 1px solid #e0e0e0;
+    padding: 12px 24px;
+
+    .date-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      color: #666;
+
+      .date-label {
+        font-weight: 500;
+      }
+
+      .date-value {
+        color: #333;
+      }
+    }
+  }
+}
+
+// カードスタイル（クリーン&コンパクト）
+.diagnosis-content .card,
+.client-info-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background: white;
+  overflow: hidden;
+  margin-bottom: 12px;
+
+  .card-header {
+    background: var(--primary-color, #3498db);
+    color: white;
+    padding: 12px 20px;
+    border-bottom: none;
+
+    h2, h3 {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: white;
+    }
+  }
+
+  .card-body {
+    padding: 20px;
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+
+      .info-item {
+        background: #f8f9fa;
+        padding: 12px;
+        border-radius: 6px;
+        border-left: 3px solid var(--primary-color, #3498db);
+
+        label {
+          font-size: 11px;
+          font-weight: 600;
+          color: #666;
+          text-transform: uppercase;
+          margin-bottom: 4px;
+          display: block;
+        }
+
+        span {
+          font-size: 14px;
+          color: #333;
+          font-weight: 500;
+          display: block;
+        }
+      }
+    }
+
+    .section {
+      margin-bottom: 12px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      h3 {
+        margin: 0 0 16px 0;
+        font-size: 1.1rem;
+        color: var(--text-primary);
+      }
+    }
+
+    .nine-star-grid, .zodiac-grid, .stroke-grid, .direction-grid, .special-info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 8px;
+
+      .star-item, .zodiac-item, .stroke-item, .direction-item, .special-info-item {
+        background: #f8f9fa;
+        padding: 10px;
+        border-radius: 6px;
+        text-align: center;
+        border-left: 3px solid var(--accent-color, #2980b9);
+
+        label {
+          display: block;
+          font-size: 10px;
+          font-weight: 600;
+          color: #666;
+          margin-bottom: 4px;
+          text-transform: uppercase;
+        }
+
+        span, .star-value {
+          font-size: 13px;
+          font-weight: 600;
+          color: #333;
+        }
+
+        .star-value {
+          color: var(--primary-color, #3498db);
+        }
+      }
+    }
+
+    .direction-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .direction-label {
+        font-weight: 600;
+        color: #555;
+        font-size: 0.9rem;
+      }
+
+      .direction-value {
+        color: var(--primary-color, #3498db);
+        font-weight: 600;
+        font-size: 1rem;
+      }
+    }
+
+    .character-info {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+
+      span {
+        color: #333;
+        font-size: 0.9rem;
+        padding: 4px 8px;
+        background: #f8f9fa;
+        border-radius: 4px;
+      }
+    }
+
+    .fortune-summary {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+
+      .fortune-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .fortune-label {
+          font-weight: 600;
+          color: #555;
+          font-size: 0.9rem;
+          min-width: 70px;
+        }
+
+        .fortune-value {
+          color: var(--primary-color, #3498db);
+          font-weight: 600;
+          font-size: 0.9rem;
+        }
+      }
+    }
+  }
+}
+
+// 情報グリッドをコンパクトに
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+  }
+
+  span {
+    font-size: 16px;
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+}
+
+// パターンA: クリーン&コンパクト専用のh3スタイル
+.diagnosis-content {
+  // A.クリーン&コンパクトパターンのときのみ適用
+  &.pattern-clean .section h3 {
+    margin: 0 0 12px 0;
+    font-size: 1rem;
+    color: var(--primary-color, #3498db);
+    border-bottom: 2px solid var(--primary-color, #3498db);
+    padding-bottom: 6px;
+    font-weight: 600;
+  }
+}
+
+// フッタースタイル
+.template-footer,
+.template-footer.modern-minimal {
+  margin-top: 1px;
+  border-top: 2px solid var(--primary-color, #3498db);
+  background: #f8f9fa;
+  padding: 20px 24px;
+  text-align: center;
+
+  .footer-content {
+    padding: 20px 24px;
+    text-align: center;
+  }
+
+  .footer-info {
+    margin-bottom: 16px;
+
+    .footer-business {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--primary-color, #3498db);
+      margin-bottom: 4px;
+    }
+
+    .footer-operator {
+      font-size: 0.9rem;
+      color: #666;
+    }
+  }
+
+  .footer-disclaimer {
+    font-size: 0.8rem;
+    color: #999;
+    line-height: 1.4;
+    padding-top: 12px;
+    border-top: 1px solid #e0e0e0;
+  }
+}
+
+//======================================
+// 姓名判断専用スタイル
+//======================================
+
+// 文字表
+.character-table {
+  margin: 16px 0;
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+    th, td {
+      padding: 12px 16px;
+      text-align: center;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    th {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      font-weight: 600;
+      font-size: 1.1rem;
+
+      &:first-child {
+        background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+      }
+    }
+
+    td {
+      color: var(--text-primary);
+      font-weight: 500;
+
+      &:first-child {
+        background: #f8fafc;
+        font-weight: 600;
+        color: var(--text-secondary);
+      }
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover {
+      background: rgba(102, 126, 234, 0.05);
+    }
+  }
+}
+
+// 鑑定結果スコアエリア
+.result-content {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  padding: 24px;
+  border-radius: 12px;
+  border: 1px solid #cbd5e1;
+
+  .score-section {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    min-width: 120px;
+
+    .score-value {
+      font-size: 3rem;
+      font-weight: 700;
+      color: #1e40af;
+      line-height: 1;
+    }
+
+    .score-label {
+      font-size: 1.2rem;
+      color: #64748b;
+      font-weight: 500;
+    }
+  }
+
+  .message-section {
+    flex: 1;
+
+    p {
+      margin: 0;
+      font-size: 1rem;
+      line-height: 1.6;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+  }
+}
+
+// 文字による鑑定エリア
+.character-evaluation-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.character-evaluation-item {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 16px;
+
+  .evaluation-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+
+    .character-name {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: var(--text-primary);
+    }
+
+    .evaluation-category {
+      background: #007bff;
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+  }
+
+  .evaluation-detail {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    font-size: 0.95rem;
+  }
+}
+
+// レスポンシブ対応
+@media (max-width: 768px) {
+  .info-grid, .nine-star-grid, .zodiac-grid, .stroke-grid, .direction-grid, .special-info-grid {
+    grid-template-columns: 1fr;
+  }
+}

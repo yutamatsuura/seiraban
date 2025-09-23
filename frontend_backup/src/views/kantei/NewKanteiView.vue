@@ -205,7 +205,6 @@
               type="submit"
               class="btn btn-primary"
               :disabled="loading || !isFormValid"
-              :class="{ 'btn-loading': loading }"
             >
               <div class="button-content">
                 <div v-if="loading" class="loading-spinner"></div>
@@ -222,7 +221,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { apiClient, type DiagnosisRequest } from '@/services/api-client'
 import MainLayout from '@/components/layout/MainLayout.vue'
@@ -411,14 +410,9 @@ const submitDiagnosis = async () => {
   if (!isFormValid.value || loading.value) return
 
   console.log('🚀 鑑定開始ボタンが押されました')
-
-  // 即座にローディング状態を反映
   loading.value = true
   errorMessage.value = ''
   successMessage.value = ''
-
-  // 次のフレームでDOM更新を強制実行
-  await nextTick()
 
   try {
     // 名前の処理：空の場合は自動生成

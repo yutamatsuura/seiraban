@@ -1,0 +1,29 @@
+<svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+  <!-- モダンな星羅盤ロゴ - スタイリッシュな線形デザイン -->
+  <defs>
+    <linearGradient id="modernGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2c3e50;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e74c3c;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- 背景の幾何学パターン -->
+  <rect x="8" y="8" width="32" height="32" fill="none" stroke="#34495e" stroke-width="1.5" rx="4"/>
+  
+  <!-- メインアイコン: 筆と星のコンビネーション -->
+  <g transform="translate(24,24)">
+    <!-- 筆のイメージ（縦線） -->
+    <line x1="-8" y1="-12" x2="-8" y2="8" stroke="url(#modernGradient)" stroke-width="3" stroke-linecap="round"/>
+    <!-- 筆先 -->
+    <polygon points="-8,8 -6,12 -10,12" fill="#e74c3c"/>
+    
+    <!-- 星のモチーフ（シンプルな4つ星） -->
+    <polygon points="4,-8 6,-4 10,-4 7,-1 8,3 4,1 0,3 1,-1 -2,-4 2,-4" fill="url(#modernGradient)"/>
+  </g>
+  
+  <!-- 装飾的な要素 -->
+  <circle cx="12" cy="12" r="1" fill="#e74c3c" opacity="0.6"/>
+  <circle cx="36" cy="12" r="1" fill="#e74c3c" opacity="0.6"/>
+  <circle cx="12" cy="36" r="1" fill="#e74c3c" opacity="0.6"/>
+  <circle cx="36" cy="36" r="1" fill="#e74c3c" opacity="0.6"/>
+</svg>

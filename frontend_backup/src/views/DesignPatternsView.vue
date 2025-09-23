@@ -22,14 +22,17 @@
         </button>
       </div>
 
-      <!-- メインコンテンツエリア -->
-      <div class="main-content" :class="{ 'panel-closed': !isPanelOpen }">
-        <!-- プレビューエリア -->
-        <div class="preview-area">
-          <div class="preview-header">
-            <h3>プレビュー</h3>
-          </div>
-          <div class="pattern-preview">
+      <!-- 選択されたパターンのプレビュー -->
+      <div class="pattern-preview">
+        <div class="preview-header">
+          <h3>{{ designPatterns[selectedPattern].name }} のプレビュー</h3>
+          <button
+            class="select-pattern-btn"
+            @click="selectThisPattern"
+          >
+この設定を保存する
+          </button>
+        </div>
         <div
           class="diagnosis-content"
           :class="{
@@ -395,9 +398,9 @@
                 </div>
                 <div class="business-section elegant">
                   <div class="business-card elegant">
-                    <div class="business-name elegant">{{ businessName }}</div>
+                    <div class="business-name elegant">占いサロン 星花</div>
                     <div class="operator-line"></div>
-                    <div class="operator-name elegant">鑑定士：{{ operatorName }}</div>
+                    <div class="operator-name elegant">鑑定士：星野 花子</div>
                   </div>
                 </div>
               </div>
@@ -431,8 +434,8 @@
             <div class="template-footer elegant-classic">
               <div class="footer-ornament"></div>
               <div class="footer-content elegant">
-                <div class="footer-business elegant">{{ businessName }}</div>
-                <div class="footer-operator elegant">鑑定士：{{ operatorName }}</div>
+                <div class="footer-business elegant">占いサロン 星花</div>
+                <div class="footer-operator elegant">鑑定士：星野 花子</div>
                 <div class="footer-disclaimer elegant">
                   ※この鑑定は参考用であり、結果について当事務所は責任を負いかねます。
                 </div>
@@ -450,8 +453,8 @@
                     <div v-else class="logo-placeholder-content">ロゴ</div>
                   </div>
                   <div class="company-info">
-                    <div class="company-name">{{ businessName }}</div>
-                    <div class="operator-info">鑑定士：{{ operatorName }}</div>
+                    <div class="company-name">占いサロン 星花</div>
+                    <div class="operator-info">鑑定士：星野 花子</div>
                   </div>
                 </div>
                 <div class="document-info">
@@ -486,7 +489,7 @@
               <div class="footer-table">
                 <div class="footer-row">
                   <div class="footer-label">発行者</div>
-                  <div class="footer-value">{{ businessName }}　鑑定士：{{ operatorName }}</div>
+                  <div class="footer-value">占いサロン 星花　鑑定士：星野 花子</div>
                 </div>
                 <div class="footer-disclaimer professional">
                   ※この鑑定は参考用であり、結果について当事務所は責任を負いかねます。
@@ -513,8 +516,8 @@
                 </div>
                 <div class="business-section vintage">
                   <div class="vintage-divider"></div>
-                  <div class="business-name vintage">{{ businessName }}</div>
-                  <div class="operator-name vintage">鑑定士：{{ operatorName }}</div>
+                  <div class="business-name vintage">占いサロン 星花</div>
+                  <div class="operator-name vintage">鑑定士：星野 花子</div>
                   <div class="vintage-divider"></div>
                 </div>
                 <div class="date-section vintage">
@@ -550,8 +553,8 @@
             <div class="template-footer elegant-vintage">
               <div class="vintage-footer-pattern"></div>
               <div class="footer-content vintage">
-                <div class="footer-business vintage">{{ businessName }}</div>
-                <div class="footer-operator vintage">鑑定士：{{ operatorName }}</div>
+                <div class="footer-business vintage">占いサロン 星花</div>
+                <div class="footer-operator vintage">鑑定士：星野 花子</div>
                 <div class="footer-disclaimer vintage">
                   ※この鑑定は参考用であり、結果について当事務所は責任を負いかねます。
                 </div>
@@ -572,7 +575,7 @@
                     </div>
                     <div class="brand-line"></div>
                     <div class="brand-text">
-                      <div class="company-name executive">{{ businessName }}</div>
+                      <div class="company-name executive">占いサロン 星花</div>
                       <div class="company-sub">エグゼクティブ鑑定</div>
                     </div>
                   </div>
@@ -587,7 +590,7 @@
                     <div class="meta-grid">
                       <div class="meta-item">
                         <div class="meta-label">CONSULTANT</div>
-                        <div class="meta-value">{{ operatorName }}</div>
+                        <div class="meta-value">星野 花子</div>
                       </div>
                       <div class="meta-item">
                         <div class="meta-label">DATE</div>
@@ -622,8 +625,8 @@
             <div class="template-footer professional-executive">
               <div class="executive-footer">
                 <div class="footer-brand">
-                  <div class="footer-logo">{{ businessName }}</div>
-                  <div class="footer-consultant">鑑定士：{{ operatorName }}</div>
+                  <div class="footer-logo">占いサロン 星花</div>
+                  <div class="footer-consultant">鑑定士：星野 花子</div>
                 </div>
                 <div class="footer-legal">
                   <div class="legal-text">
@@ -666,7 +669,7 @@
 
             <div class="template-footer simple-minimal">
               <div class="minimal-footer">
-                <div class="minimal-business">{{ businessName }} | 鑑定士：{{ operatorName }}</div>
+                <div class="minimal-business">占いサロン 星花 | 鑑定士：星野 花子</div>
                 <div class="minimal-disclaimer">
                   ※この鑑定は参考用であり、結果について当事務所は責任を負いかねます。
                 </div>
@@ -674,20 +677,16 @@
             </div>
           </template>
 
-          </div>
-          </div>
         </div>
+      </div>
 
-        <!-- 設定パネル -->
-        <div class="settings-sidebar" :class="{ 'collapsed': !isPanelOpen }">
-          <!-- パネル開閉ボタン -->
-          <button class="panel-toggle" @click="isPanelOpen = !isPanelOpen">
-            <span class="toggle-icon">{{ isPanelOpen ? '▶' : '◀' }}</span>
-            <span class="toggle-text">{{ isPanelOpen ? '設定を閉じる' : '設定を開く' }}</span>
-          </button>
+      <!-- 読み込み中表示 -->
+      <div v-if="loading" class="loading-overlay">
+        <div class="loading-spinner">設定を読み込み中...</div>
+      </div>
 
-          <!-- カスタマイズ設定 -->
-          <div class="settings-panel" v-show="isPanelOpen">
+      <!-- 設定パネル -->
+      <div v-else class="settings-panel">
         <h3>カスタマイズ設定</h3>
 
         <!-- 基本情報設定 -->
@@ -773,18 +772,6 @@
             </select>
           </div>
         </div>
-
-        <!-- 保存ボタン -->
-        <div class="save-section">
-          <button
-            class="save-settings-btn"
-            @click="selectThisPattern"
-          >
-            この設定を保存する
-          </button>
-          </div>
-        </div>
-      </div>
       </div>
     </div>
   </MainLayout>
@@ -800,25 +787,22 @@ const router = useRouter()
 const selectedPattern = ref('clean')
 const selectedTheme = ref('default')
 
-// パネル開閉状態
-const isPanelOpen = ref(true)
-
 // 設定用の reactive variables
-const businessName = ref('')
-const operatorName = ref('')
+const businessName = ref('占いサロン 星花')
+const operatorName = ref('星野 花子')
 const fontFamily = ref('default')
 const fontSize = ref('medium')
 const logoFile = ref<File | null>(null)
 const logoPreviewUrl = ref<string>('')
 
+// 設定読み込み状態
+const loading = ref(true)
 
 const designPatterns = ref({
   clean: { name: 'A. クリーン&コンパクト' },
   elegant: { name: 'B. エレガント&クラシック' },
   elegant2: { name: 'C. エレガント&ヴィンテージ' },
-  elegant_royal: { name: 'D. エレガント&ロイヤル' },
   professional: { name: 'E. プロフェッショナル&ビジネス' },
-  professional2: { name: 'F. プロフェッショナル&コーポレート' },
   professional3: { name: 'G. プロフェッショナル&エグゼクティブ' },
   minimal: { name: 'H. シンプルミニマル' }
 })
@@ -956,6 +940,7 @@ const removeLogo = async () => {
 // 設定を読み込む
 const loadSettings = async () => {
   try {
+    loading.value = true
     const settings = await apiClient.getTemplateSettings()
 
     // デバッグ情報を表示
@@ -965,8 +950,8 @@ const loadSettings = async () => {
     if (settings) {
       selectedPattern.value = settings.design_pattern || 'clean'
       selectedTheme.value = settings.color_theme || 'default'
-      businessName.value = settings.business_name || ''
-      operatorName.value = settings.operator_name || ''
+      businessName.value = settings.business_name || '占いサロン 星花'
+      operatorName.value = settings.operator_name || '星野 花子'
       fontFamily.value = settings.font_family || 'default'
       fontSize.value = settings.font_size || 'medium'
 
@@ -993,6 +978,7 @@ const loadSettings = async () => {
     console.error('設定読み込みエラー:', error)
     // エラーの場合はデフォルト値のまま
   } finally {
+    loading.value = false
   }
 }
 
@@ -1076,35 +1062,22 @@ onMounted(() => {
   @include page-container;
 }
 
-// メインコンテンツエリア
-.main-content {
+// 読み込み中表示
+.loading-overlay {
   display: flex;
-  gap: 32px;
-  margin-top: 32px;
-  min-height: calc(100vh - 300px);
-  transition: margin-right 0.3s ease;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
 
-  &.panel-closed {
-    margin-right: 60px; // 折りたたみボタン分のスペース
-  }
-
-  &:not(.panel-closed) {
-    margin-right: 420px; // パネル幅 + ギャップ
-  }
-
-  @media (max-width: 1200px) {
-    flex-direction: column;
-    gap: 24px;
-    margin-right: 0;
+  .loading-spinner {
+    background: white;
+    padding: 24px 32px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    color: var(--text-secondary);
+    font-size: 1rem;
   }
 }
-
-// プレビューエリア
-.preview-area {
-  flex: 1;
-  min-width: 0;
-}
-
 
 .page-header {
   @include page-header;
@@ -1136,7 +1109,6 @@ onMounted(() => {
     cursor: pointer;
     transition: all 0.2s ease;
     font-weight: 500;
-    color: #2c3e50 !important;
 
     &:hover {
       border-color: var(--primary-main);
@@ -1146,36 +1118,58 @@ onMounted(() => {
     &.active {
       border-color: var(--primary-main);
       background: var(--primary-main);
-      color: white !important;
+      color: white;
     }
-  }
-}
-
-.preview-header {
-  margin-bottom: 24px;
-  padding: 20px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  border: 1px solid #f0f1f3;
-
-  h3 {
-    margin: 0;
-    color: #2c3e50 !important;
-    font-size: 1.3rem;
-    font-weight: 600;
-    letter-spacing: -0.02em;
   }
 }
 
 // プレビューエリア
 .pattern-preview {
-  background: #f8f9fb;
-  padding: 32px;
-  border-radius: 16px;
-  min-height: 700px;
-  border: 1px solid #e8eaed;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  background: #f5f5f5;
+  padding: 40px;
+  border-radius: 12px;
+  margin-bottom: 32px;
+  min-height: 600px;
+
+  .preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding: 16px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+    h3 {
+      margin: 0;
+      color: var(--text-primary);
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+
+    .select-pattern-btn {
+      background: linear-gradient(135deg, var(--primary-main), var(--primary-dark));
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
+    }
+  }
 }
 
 .diagnosis-content {
@@ -1185,316 +1179,133 @@ onMounted(() => {
 
 }
 
-// 設定サイドバー
-.settings-sidebar {
-  position: fixed;
-  top: 120px;
-  right: 20px;
-  width: 400px;
+// 設定パネル
+.settings-panel {
   background: white;
-  border-radius: 16px;
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.08);
-  border: 1px solid #e8eaed;
-  max-height: calc(100vh - 140px);
-  overflow-y: auto;
-  z-index: 1000;
-  transition: transform 0.3s ease, width 0.3s ease;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 32px;
 
-  &.collapsed {
-    width: 60px;
-    transform: translateX(340px);
+  h3 {
+    margin: 0 0 24px 0;
+    color: var(--text-primary);
+    font-size: 1.4rem;
+    font-weight: 600;
   }
 
-  @media (max-width: 1200px) {
-    position: relative;
-    width: 100%;
-    top: 0;
-    right: 0;
-    order: -1;
-    max-height: none;
-    overflow-y: visible;
-
-    &.collapsed {
-      width: 100%;
-      transform: none;
-    }
-  }
-}
-
-// パネル開閉ボタン
-.panel-toggle {
-  position: absolute;
-  top: 20px;
-  left: -50px;
-  width: 40px;
-  height: 80px;
-  background: white;
-  border: 1px solid #e8eaed;
-  border-right: none;
-  border-radius: 12px 0 0 12px;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  box-shadow: -4px 0 8px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
-  color: #2c3e50 !important;
-
-  &:hover {
-    background: #f8f9fa;
-    transform: translateX(-2px);
-  }
-
-  .toggle-icon {
-    font-size: 14px;
-    color: #2c3e50 !important;
-  }
-
-  .toggle-text {
-    font-size: 10px;
-    writing-mode: vertical-rl;
-    text-orientation: mixed;
-    color: #666 !important;
-    white-space: nowrap;
-  }
-
-  @media (max-width: 1200px) {
-    position: relative;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 40px;
-    border-radius: 8px;
-    border: 1px solid #e8eaed;
-    flex-direction: row;
-    margin-bottom: 10px;
-
-    .toggle-text {
-      writing-mode: horizontal-tb;
-      text-orientation: initial;
-    }
-  }
-}
-
-// 設定パネル - 緊急修正：最強詳細度
-.design-patterns .settings-sidebar .settings-panel {
-  padding: 32px;
-  background: white !important;
-  color: #2c3e50 !important;
-
-  // すべての子要素を強制的に黒色に
-  *,
-  *::before,
-  *::after {
-    color: #2c3e50 !important;
-    background-color: transparent !important;
-  }
-
-  // 入力フィールドは白背景
-  input,
-  select,
-  textarea {
-    background-color: white !important;
-    color: #2c3e50 !important;
-    border: 1px solid #ddd !important;
-  }
-}
-
-.settings-panel h3 {
-    margin: 0 0 32px 0;
-    color: #2c3e50 !important;
-    font-size: 1.5rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    padding-bottom: 16px;
-    border-bottom: 2px solid #f0f1f3;
-  }
-
-.settings-panel .setting-section {
-    margin-bottom: 32px;
+  .setting-section {
+    margin-bottom: 24px;
 
     &:last-child {
       margin-bottom: 0;
     }
 
     h4 {
-      margin: 0 0 20px 0;
-      color: #2c3e50 !important;
+      margin: 0 0 16px 0;
+      color: var(--text-secondary);
       font-size: 1.1rem;
       font-weight: 600;
-      padding: 12px 0;
-      border-bottom: 1px solid #e8eaed;
-      position: relative;
-
-      &::before {
-        content: '';
-        position: absolute;
-        bottom: -1px;
-        left: 0;
-        width: 40px;
-        height: 2px;
-        background: var(--primary-main);
-      }
+      border-bottom: 1px solid #e0e0e0;
+      padding-bottom: 8px;
     }
   }
 
-.settings-panel .setting-row {
-    margin-bottom: 20px;
+  .setting-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
 
     &:last-child {
       margin-bottom: 0;
     }
 
     label {
-      display: block;
-      font-weight: 600;
-      color: #2c3e50 !important;
+      font-weight: 500;
+      color: var(--text-primary);
+      min-width: 120px;
       font-size: 0.9rem;
-      margin-bottom: 8px;
-      letter-spacing: -0.01em;
     }
 
     input, select {
-      width: 100%;
-      padding: 12px 16px;
-      border: 1px solid #e1e5e9;
-      border-radius: 10px;
-      font-size: 0.95rem;
-      transition: all 0.2s ease;
-      background: #fafbfc;
+      flex: 1;
+      max-width: 300px;
+      padding: 8px 12px;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      transition: border-color 0.2s ease;
 
       &:focus {
         outline: none;
         border-color: var(--primary-main);
-        background: white;
-        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.08);
-      }
-
-      &:hover {
-        border-color: #c5cbd2;
+        box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.1);
       }
     }
 
     .logo-upload-input {
-      background: white;
-      cursor: pointer;
+      max-width: 250px;
     }
   }
 
   .logo-preview {
     display: flex;
     align-items: center;
-    gap: 16px;
-    margin-top: 16px;
-    padding: 16px;
-    background: #f8f9fb;
-    border-radius: 12px;
-    border: 1px solid #e8eaed;
+    gap: 12px;
+    margin-top: 12px;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 6px;
 
     .logo-preview-image {
-      width: 64px;
-      height: 32px;
+      width: 60px;
+      height: 30px;
       object-fit: contain;
-      border: 1px solid #e1e5e9;
-      border-radius: 8px;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
       background: white;
     }
 
     .remove-logo-btn {
-      padding: 8px 16px;
-      background: #ef4444;
+      padding: 4px 8px;
+      background: #dc3545;
       color: white;
       border: none;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      font-weight: 500;
+      border-radius: 4px;
+      font-size: 0.8rem;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: background-color 0.2s ease;
 
       &:hover {
-        background: #dc2626;
-        transform: translateY(-1px);
+        background: #c82333;
       }
     }
   }
 
   .theme-colors {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    display: flex;
     gap: 12px;
+    flex-wrap: wrap;
   }
 
   .theme-btn {
-    padding: 12px 16px;
-    border: 2px solid transparent;
-    border-radius: 12px;
+    padding: 8px 16px;
+    border: 2px solid white;
+    border-radius: 20px;
     color: white;
     cursor: pointer;
     transition: all 0.2s ease;
-    font-size: 0.85rem;
+    font-size: 12px;
     font-weight: 600;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
 
     &:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transform: scale(1.05);
     }
 
     &.active {
       border-color: #333;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-
-      &::after {
-        content: '✓';
-        position: absolute;
-        top: 4px;
-        right: 8px;
-        font-size: 0.9rem;
-        font-weight: bold;
-      }
-    }
-  }
-
-// 保存セクション
-.save-section {
-  padding: 24px 32px;
-  background: #f8f9fb;
-  border-top: 1px solid #e8eaed;
-  border-radius: 0 0 16px 16px;
-  margin: 0 -32px -32px;
-
-  .save-settings-btn {
-    width: 100%;
-    background: linear-gradient(135deg, var(--primary-main), var(--primary-dark));
-    color: white;
-    border: none;
-    padding: 16px 24px;
-    border-radius: 12px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 16px rgba(52, 152, 219, 0.25);
-    letter-spacing: -0.01em;
-
-    &:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(52, 152, 219, 0.35);
-    }
-
-    &:active {
-      transform: translateY(0);
-    }
-
-    &:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none !important;
-      box-shadow: 0 2px 8px rgba(52, 152, 219, 0.15);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     }
   }
 }
@@ -3000,118 +2811,14 @@ onMounted(() => {
 @media (max-width: 768px) {
   .pattern-selector {
     flex-direction: column;
-    gap: 8px;
   }
 
   .pattern-preview {
-    padding: 16px;
-    min-height: 500px;
+    padding: 20px;
   }
 
-  .settings-sidebar {
-    width: 100%;
+  .theme-colors {
+    flex-direction: column;
   }
-
-  .settings-panel {
-    padding: 24px;
-
-    h3 {
-      font-size: 1.3rem;
-      margin-bottom: 24px;
-    }
-
-    .setting-section {
-      margin-bottom: 24px;
-
-      h4 {
-        font-size: 1rem;
-      }
-    }
-  }
-
-  .save-section {
-    padding: 16px 24px;
-    margin: 0 -24px -24px;
-
-    .save-settings-btn {
-      padding: 14px 20px;
-      font-size: 0.95rem;
-    }
-  }
-}
-
-/* 緊急修正: 設定パネルの文字色問題対策 - 正確なセレクター */
-.design-patterns .settings-sidebar .settings-panel,
-.design-patterns .settings-sidebar .settings-panel *,
-.design-patterns .settings-sidebar .settings-panel *::before,
-.design-patterns .settings-sidebar .settings-panel *::after,
-.design-patterns .settings-sidebar .settings-panel h1,
-.design-patterns .settings-sidebar .settings-panel h2,
-.design-patterns .settings-sidebar .settings-panel h3,
-.design-patterns .settings-sidebar .settings-panel h4,
-.design-patterns .settings-sidebar .settings-panel h5,
-.design-patterns .settings-sidebar .settings-panel h6,
-.design-patterns .settings-sidebar .settings-panel p,
-.design-patterns .settings-sidebar .settings-panel span,
-.design-patterns .settings-sidebar .settings-panel div,
-.design-patterns .settings-sidebar .settings-panel label,
-.design-patterns .settings-sidebar .settings-panel .setting-section,
-.design-patterns .settings-sidebar .settings-panel .setting-row,
-.design-patterns .settings-sidebar .settings-panel .theme-colors,
-.design-patterns .settings-sidebar .settings-panel .theme-btn {
-  color: #000000 !important;
-  background-color: transparent !important;
-}
-
-.design-patterns .settings-sidebar .settings-panel input,
-.design-patterns .settings-sidebar .settings-panel select,
-.design-patterns .settings-sidebar .settings-panel textarea {
-  color: #000000 !important;
-  background-color: #ffffff !important;
-  border: 1px solid #cccccc !important;
-}
-
-/* さらに強力な上書き - インラインスタイルレベル */
-div.design-patterns div.settings-sidebar div.settings-panel * {
-  color: #000000 !important;
-}
-
-/* 核攻撃レベルの上書き */
-.design-patterns .settings-sidebar .settings-panel h3,
-.design-patterns .settings-sidebar .settings-panel h4,
-.design-patterns .settings-sidebar .settings-panel label {
-  color: #000000 !important;
-}
-
-[data-v-2bd0b28c] .settings-panel * {
-  color: #000000 !important;
-}
-
-/* 時間経過でのCSS変化を完全に防ぐ最終手段 */
-.settings-panel,
-.settings-panel *,
-.settings-panel label,
-.settings-panel h3,
-.settings-panel h4,
-.settings-panel span,
-.settings-panel div {
-  color: #000000 !important;
-  animation: none !important;
-  transition: none !important;
-}
-
-.panel-toggle,
-.panel-toggle * {
-  color: #2c3e50 !important;
-  animation: none !important;
-}
-
-/* パターンボタンの文字色修正 */
-.design-patterns .pattern-selector .pattern-btn {
-  color: #2c3e50 !important;
-}
-
-.design-patterns .pattern-selector .pattern-btn.active {
-  color: #ffffff !important;
 }
 </style>

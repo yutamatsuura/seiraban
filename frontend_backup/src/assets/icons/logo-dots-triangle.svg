@@ -1,0 +1,16 @@
+<svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="triangleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#34495e"/>
+      <stop offset="100%" style="stop-color:#2c3e50"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 三角形配置のドット -->
+  <circle cx="24" cy="14" r="3" fill="url(#triangleGradient)"/>
+  <circle cx="18" cy="26" r="3" fill="url(#triangleGradient)" opacity="0.8"/>
+  <circle cx="30" cy="26" r="3" fill="url(#triangleGradient)" opacity="0.8"/>
+
+  <!-- 中央の小さなドット -->
+  <circle cx="24" cy="22" r="1.5" fill="url(#triangleGradient)" opacity="0.6"/>
+</svg>

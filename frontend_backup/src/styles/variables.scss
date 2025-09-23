@@ -1,0 +1,318 @@
+// プロフェッショナルテーマ設定
+// Mockup P-001, P-005 のスタイルを適用
+
+// カラーパレット
+:root {
+  // Primary colors
+  --primary-main: #34495e;
+  --primary-light: #566573;
+  --primary-dark: #2c3e50;
+
+  // Secondary colors
+  --secondary-main: #bdc3c7;
+  --secondary-light: #d5dbdb;
+  --secondary-dark: #85929e;
+
+  // Semantic colors
+  --success-main: #16a085;
+  --success-light: #48c9b0;
+  --warning-main: #f39c12;
+  --error-main: #e74c3c;
+
+  // Background colors
+  --background-default: #ffffff;
+  --background-paper: #fafbfc;
+  --background-elegant: linear-gradient(135deg, #ffffff, #f8f9fa);
+  --background-page: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  --background-dark: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+
+  // Text colors
+  --text-primary: #2c3e50;
+  --text-secondary: #566573;
+  --text-disabled: #bdc3c7;
+
+  // Border colors
+  --border-color: #d5dbdb;
+  --border-light: #ecf0f1;
+
+  // Shadows
+  --shadow-1: 0 2px 4px rgba(52, 73, 94, 0.1);
+  --shadow-2: 0 4px 8px rgba(52, 73, 94, 0.12);
+  --shadow-3: 0 8px 16px rgba(52, 73, 94, 0.14);
+  --shadow-large: 0 16px 32px rgba(52, 73, 94, 0.18);
+  --shadow-elegant: 0 4px 20px rgba(44, 62, 80, 0.06);
+  --shadow-elegant-hover: 0 12px 40px rgba(44, 62, 80, 0.12);
+  --shadow-elegant-card: 0 8px 32px rgba(44, 62, 80, 0.08);
+
+  // Spacing
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+
+  // Border radius
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-elegant: 20px;
+  --radius-elegant-sm: 16px;
+
+  // Transitions
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+  --transition-elegant: 0.4s ease;
+
+  // Typography
+  --font-size-xs: 0.75rem;    // 12px
+  --font-size-sm: 0.875rem;   // 14px
+  --font-size-base: 1rem;     // 16px
+  --font-size-lg: 1.125rem;   // 18px
+  --font-size-xl: 1.25rem;    // 20px
+  --font-size-2xl: 1.5rem;    // 24px
+  --font-size-3xl: 1.875rem;  // 30px
+  --font-size-4xl: 2.25rem;   // 36px
+
+  // Line heights
+  --line-height-tight: 1.25;
+  --line-height-base: 1.5;
+  --line-height-relaxed: 1.75;
+
+  // Page content width
+  --content-max-width: 1200px;
+  --content-padding: var(--spacing-xl);
+
+  // Layout
+  --sidebar-width: 280px;
+  --header-height: 64px;
+}
+
+// フォント設定
+$font-family-serif: "Times New Roman", "Noto Serif JP", serif;
+$font-family-sans: "Roboto", "Noto Sans JP", sans-serif;
+
+// Font weights
+$font-weight-regular: 400;
+$font-weight-medium: 500;
+$font-weight-bold: 700;
+
+// ブレークポイント
+$breakpoint-xs: 480px;
+$breakpoint-sm: 768px;
+$breakpoint-md: 1024px;
+$breakpoint-lg: 1280px;
+$breakpoint-xl: 1440px;
+
+// Mixins
+@mixin transition($properties...) {
+  transition-property: $properties;
+  transition-duration: var(--transition-normal);
+  transition-timing-function: ease;
+}
+
+@mixin hover-effect {
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-3);
+  }
+}
+
+@mixin card {
+  background: var(--background-elegant);
+  border: 1px solid rgba(222, 226, 230, 0.6);
+  border-radius: var(--radius-elegant);
+  box-shadow: var(--shadow-elegant);
+  padding: var(--spacing-lg);
+  transition: all var(--transition-elegant);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(44, 62, 80, 0.02) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity var(--transition-elegant);
+    pointer-events: none; // 擬似要素がクリックイベントを妨害しないように
+  }
+
+  &:hover::before {
+    opacity: 1;
+  }
+
+  &:hover {
+    box-shadow: var(--shadow-elegant-hover);
+    transform: translateY(-8px);
+    border-color: rgba(44, 62, 80, 0.1);
+  }
+}
+
+@mixin button-base {
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-weight: $font-weight-medium;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: none;
+  outline: none;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+@mixin button-primary {
+  @include button-base;
+  background: linear-gradient(135deg, var(--primary-main), var(--primary-dark));
+  color: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-elegant);
+
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary-main));
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(44, 62, 80, 0.2);
+  }
+}
+
+@mixin button-secondary {
+  @include button-base;
+  background: var(--background-elegant);
+  color: var(--text-primary);
+  border: 1px solid rgba(44, 62, 80, 0.2);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-elegant);
+
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, var(--primary-main), var(--primary-dark));
+    color: white;
+    border-color: var(--primary-main);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(44, 62, 80, 0.15);
+  }
+}
+
+// ページレイアウト統一
+@mixin page-container {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: calc(var(--spacing-lg) + var(--spacing-xl)) var(--content-padding) var(--content-padding);
+  min-height: calc(100vh - var(--header-height));
+  background: var(--background-page);
+}
+
+@mixin page-header {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--border-light);
+}
+
+// タイポグラフィ統一
+@mixin page-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 0.5rem 0;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  .page-title-icon {
+    width: 24px;
+    height: 24px;
+    opacity: 0.8;
+  }
+}
+
+@mixin section-title {
+  font-size: var(--font-size-xl);
+  font-weight: $font-weight-medium;
+  color: var(--text-primary);
+  margin: var(--spacing-lg) 0 var(--spacing-md) 0;
+  line-height: var(--line-height-base);
+}
+
+@mixin body-text {
+  font-size: var(--font-size-base);
+  color: var(--text-primary);
+  line-height: var(--line-height-base);
+  margin: 0;
+}
+
+@mixin small-text {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  line-height: var(--line-height-base);
+  font-style: normal;
+}
+
+// ボタンサイズ統一
+@mixin button-small {
+  @include button-base;
+  padding: 8px 16px;
+  font-size: var(--font-size-sm);
+}
+
+@mixin button-large {
+  @include button-base;
+  padding: 16px 32px;
+  font-size: var(--font-size-lg);
+}
+
+// フォーム統一
+@mixin form-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  color: var(--text-primary);
+  background: white;
+  transition: all var(--transition-fast);
+
+  &:focus {
+    outline: none;
+    border-color: var(--primary-main);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+  }
+
+  &::placeholder {
+    color: var(--text-disabled);
+  }
+}
+
+@mixin form-label {
+  font-size: var(--font-size-sm);
+  font-weight: $font-weight-medium;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-xs);
+  display: block;
+}
+
+// グリッドシステム
+@mixin responsive-grid {
+  display: grid;
+  gap: var(--spacing-lg);
+
+  @media (max-width: $breakpoint-sm) {
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: $breakpoint-sm) and (max-width: $breakpoint-md) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: $breakpoint-md) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
