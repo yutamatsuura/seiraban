@@ -30,7 +30,7 @@ import Sidebar from './Sidebar.vue'
   overflow-y: auto;
 
   // レスポンシブ対応
-  @media (max-width: 1024px) {
+  @media (max-width: $breakpoint-md) {
     margin-left: 0;
     padding: 0;
   }

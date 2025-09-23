@@ -118,7 +118,7 @@ onMounted(() => {
 
   .theme-name {
     font-size: var(--font-size-sm);
-    font-weight: 500;
+    font-weight: $font-weight-medium;
     color: var(--text-primary);
   }
 
@@ -148,7 +148,7 @@ onMounted(() => {
   h3 {
     margin: 0 0 var(--spacing-md) 0;
     font-size: var(--font-size-lg);
-    font-weight: 500;
+    font-weight: $font-weight-medium;
     color: var(--text-primary);
   }
 
@@ -192,7 +192,7 @@ onMounted(() => {
 
       .theme-option-name {
         font-size: var(--font-size-base);
-        font-weight: 500;
+        font-weight: $font-weight-medium;
         color: var(--text-primary);
         margin-bottom: var(--spacing-xs);
       }
@@ -213,7 +213,7 @@ onMounted(() => {
     border: none;
     border-radius: var(--radius-md);
     font-size: var(--font-size-sm);
-    font-weight: 500;
+    font-weight: $font-weight-medium;
     cursor: pointer;
     transition: all var(--transition-fast);
 

@@ -77,7 +77,7 @@ const menuItems = [
     description: '過去の結果を管理'
   },
   {
-    path: '/kantei/design-patterns',
+    path: '/kantei/templates',
     iconPath: '/src/assets/icons/template.svg',
     label: 'テンプレート設定',
     description: '鑑定書デザイン調整'
@@ -137,7 +137,7 @@ const handleLogout = async () => {
 </script>
 
 <style scoped lang="scss">
-@import '@/styles/variables.scss';
+// variables.scss は App.vue でグローバル読み込み済み
 
 .sidebar {
   width: var(--sidebar-width);
@@ -345,7 +345,7 @@ const handleLogout = async () => {
 
       .user-name {
         font-size: 0.8rem;
-        font-weight: $font-weight-medium;
+        font-weight: 500;
         color: var(--text-primary);
         margin: 0;
         line-height: 1.3;
@@ -367,7 +367,7 @@ const handleLogout = async () => {
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     font-size: 0.8rem;
-    font-weight: $font-weight-medium;
+    font-weight: 500;
     cursor: pointer;
     transition: all var(--transition-fast);
 
@@ -380,7 +380,7 @@ const handleLogout = async () => {
 }
 
 // レスポンシブ対応
-@media (max-width: $breakpoint-md) {
+@media (max-width: 1024px) {
   .sidebar {
     transform: translateX(-100%);
     transition: transform var(--transition-normal);

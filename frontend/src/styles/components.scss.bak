@@ -31,7 +31,7 @@
   padding: 4px 8px;
   border-radius: var(--radius-sm);
   font-size: var(--font-size-xs);
-  font-weight: 500;
+  font-weight: $font-weight-medium;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 
@@ -176,7 +176,7 @@
 .text-error { color: var(--error-main); }
 
 .font-bold { font-weight: $font-weight-bold; }
-.font-medium { font-weight: 500; }
+.font-medium { font-weight: $font-weight-medium; }
 .font-regular { font-weight: $font-weight-regular; }
 
 // アニメーション

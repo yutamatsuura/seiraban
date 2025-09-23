@@ -22,6 +22,7 @@ onMounted(async () => {
 @import '@/styles/themes/minimal.scss';
 @import '@/styles/themes/elegant.scss';
 @import '@/styles/themes/modern.scss';
+@import '@/styles/diagnosis-templates.scss';
 
 // Global base styles
 * {

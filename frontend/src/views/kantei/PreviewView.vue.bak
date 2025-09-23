@@ -320,7 +320,7 @@
             </div>
 
             <!-- Name Analysis Results -->
-            <div class="section section-spacing-large">
+            <div class="section">
               <h3>鑑定の結果</h3>
               <div class="result-content">
                 <div class="score-section">
@@ -1031,10 +1031,6 @@ onUnmounted(() => {
 
 .section-spacing {
   margin-top: 20px;
-}
-
-.section-spacing-large {
-  margin-top: 40px;
 }
 
 .appraisal-results {

@@ -233,7 +233,7 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-@import '@/styles/variables.scss';
+// variables.scss は App.vue でグローバル読み込み済み
 
 .dashboard {
   @include page-container;
@@ -345,7 +345,7 @@ onMounted(() => {
     color: var(--primary-main);
     font-size: var(--font-size-sm);
     text-decoration: none;
-    font-weight: 500;
+    font-weight: $font-weight-medium;
 
     &:hover {
       text-decoration: underline;
@@ -402,7 +402,7 @@ onMounted(() => {
 
       .kantei-name {
         @include body-text;
-        font-weight: 500;
+        font-weight: $font-weight-medium;
         margin-bottom: var(--spacing-xs);
       }
 
