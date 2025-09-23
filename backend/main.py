@@ -25,7 +25,7 @@ import time
 print(f"=== DEBUG: 起動時刻 {time.strftime('%Y-%m-%d %H:%M:%S')} ===")
 
 # 必要なライブラリをインポート
-from fastapi import FastAPI, HTTPException, BackgroundTasks, Depends, status
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Depends, status, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -94,6 +94,10 @@ class TemplateSettingsDB(Base):
     layout_style = Column(String(50), nullable=False, default="standard")
     logo_url = Column(String(500), nullable=True)
     custom_css = Column(String, nullable=True)
+    diagnosis_title = Column(String(200), nullable=True, default="鑑定書")
+    font_size = Column(String(20), nullable=True)
+    title_font = Column(String(100), nullable=True, default="default")
+    body_font = Column(String(100), nullable=True, default="default")
     settings_version = Column(String(20), nullable=False, default="1.0")
     created_at = Column(DateTime, default=func.now(), nullable=False)
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
@@ -210,6 +214,7 @@ app.add_middleware(
 
 # 静的ファイル配信設定
 app.mount("/static", StaticFiles(directory="/tmp/pdf_storage"), name="static")
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 # Puppeteerブリッジのパス
 PUPPETEER_BRIDGE_PATH = "/Users/lennon/projects/inoue4/system/puppeteer_bridge_final.js"
@@ -250,6 +255,10 @@ class TemplateSettingsUpdate(BaseModel):
     layout_style: Optional[str] = "standard"
     logo_url: Optional[str] = None
     custom_css: Optional[str] = None
+    diagnosis_title: Optional[str] = None
+    font_size: Optional[str] = None
+    title_font: Optional[str] = None
+    body_font: Optional[str] = None
 
 class TemplateSettings(BaseModel):
     business_name: str = ""
@@ -262,14 +271,41 @@ class TemplateSettings(BaseModel):
     custom_css: Optional[str] = None
 
 # データベース操作関数
+def _convert_font_scale_to_size(font_scale):
+    """font_scale（数値）をfont_size（文字列）に変換"""
+    if font_scale is None:
+        return "medium"
+
+    try:
+        scale = float(font_scale)
+        if scale <= 0.95:
+            return "small"
+        elif scale >= 1.15:
+            return "large"
+        else:
+            return "medium"
+    except (ValueError, TypeError):
+        return "medium"
+
+def _convert_font_size_to_scale(font_size):
+    """font_size（文字列）をfont_scale（数値）に変換"""
+    if font_size == "small":
+        return "0.9"
+    elif font_size == "large":
+        return "1.2"
+    else:  # medium or default
+        return "1.0"
+
 def get_user_template_settings(user_id: int):
     """ユーザーのテンプレート設定を取得（存在しない場合はデフォルト設定を作成）"""
     db = get_database_session()
     try:
+        print(f"DEBUG: 設定取得 user_id={user_id}")
         settings = db.query(TemplateSettingsDB).filter(TemplateSettingsDB.user_id == user_id).first()
 
         if not settings:
             # 設定が存在しない場合はデフォルトを作成
+            print("DEBUG: 設定が存在しないため、デフォルトを作成")
             settings = TemplateSettingsDB(
                 user_id=user_id,
                 business_name="占いサロン 星花",
@@ -282,17 +318,25 @@ def get_user_template_settings(user_id: int):
             db.add(settings)
             db.commit()
             db.refresh(settings)
+        else:
+            print(f"DEBUG: 既存設定を読み込み: color_theme={settings.color_theme}, font_family={settings.font_family}, font_scale={settings.font_scale}, title_font={settings.title_font}, body_font={settings.body_font}, custom_css={settings.custom_css}")
 
-        # Pydanticモデル形式で返す
+        # Pydanticモデル形式で返す（フロントエンドの期待するフィールド名に合わせる）
         return {
             "business_name": settings.business_name,
             "operator_name": settings.operator_name,
             "color_theme": settings.color_theme,
             "font_family": settings.font_family,
-            "font_scale": float(settings.font_scale),
+            "font_size": _convert_font_scale_to_size(settings.font_scale),  # font_scaleをfont_sizeとして返す
             "layout_style": settings.layout_style,
             "logo_url": settings.logo_url,
-            "custom_css": settings.custom_css
+            "custom_css": settings.custom_css,
+            # フロントエンドが期待する追加フィールド
+            "diagnosis_title": settings.diagnosis_title or "鑑定書",  # 専用フィールドから読み込み
+            "primary_color": "#2c3e50",  # デフォルト値
+            "accent_color": "#34495e",   # デフォルト値
+            "title_font": settings.title_font or "default",   # 専用フィールドから読み込み
+            "body_font": settings.body_font or "default"      # 専用フィールドから読み込み
         }
     finally:
         db.close()
@@ -301,34 +345,65 @@ def update_user_template_settings(user_id: int, settings_update: dict):
     """ユーザーのテンプレート設定を更新"""
     db = get_database_session()
     try:
+        print(f"DEBUG: user_id={user_id}, settings_update={settings_update}")
         settings = db.query(TemplateSettingsDB).filter(TemplateSettingsDB.user_id == user_id).first()
 
         if not settings:
             # 設定が存在しない場合は新規作成
+            print("DEBUG: 設定が存在しないため新規作成")
             settings = TemplateSettingsDB(user_id=user_id)
             db.add(settings)
 
-        # 更新
+        # 更新（フロントエンドから送信される新しいフィールドを適切にマッピング）
         for key, value in settings_update.items():
-            if value is not None and hasattr(settings, key):
+            print(f"DEBUG: 処理中 {key} = {value} (type: {type(value)})")
+
+            # すべてのフィールドを処理（値がNoneや空でも）
+            if key == "font_size":
+                # font_size → font_scaleにマッピング
+                scale_value = _convert_font_size_to_scale(value or "medium")
+                setattr(settings, "font_scale", scale_value)
+                print(f"DEBUG: font_scale に設定: {scale_value} (元の値: {value})")
+            elif key == "diagnosis_title":
+                # diagnosis_title → diagnosis_titleフィールドに保存
+                setattr(settings, "diagnosis_title", value or "鑑定書")
+                print(f"DEBUG: diagnosis_title に設定: {value or '鑑定書'}")
+            elif key == "title_font":
+                # title_fontフィールドに保存
+                setattr(settings, "title_font", value or "default")
+                print(f"DEBUG: title_font に設定: {value or 'default'}")
+            elif key == "body_font":
+                # body_fontフィールドに保存
+                setattr(settings, "body_font", value or "default")
+                print(f"DEBUG: body_font に設定: {value or 'default'}")
+            elif hasattr(settings, key):
+                # 通常のフィールド
                 if key == "font_scale":
-                    setattr(settings, key, str(value))
+                    setattr(settings, key, str(value or "1.0"))
                 else:
-                    setattr(settings, key, value)
+                    setattr(settings, key, value or "")
+                print(f"DEBUG: {key} に設定: {value}")
 
         db.commit()
         db.refresh(settings)
+        print(f"DEBUG: データベース保存完了")
 
-        # Pydanticモデル形式で返す
+        # Pydanticモデル形式で返す（フロントエンドの期待するフィールド名に合わせる）
         return {
             "business_name": settings.business_name,
             "operator_name": settings.operator_name,
             "color_theme": settings.color_theme,
             "font_family": settings.font_family,
-            "font_scale": float(settings.font_scale),
+            "font_size": _convert_font_scale_to_size(settings.font_scale),  # font_scaleをfont_sizeとして返す
             "layout_style": settings.layout_style,
             "logo_url": settings.logo_url,
-            "custom_css": settings.custom_css
+            "custom_css": settings.custom_css,
+            # フロントエンドが期待する追加フィールド
+            "diagnosis_title": settings.diagnosis_title or "鑑定書",  # 専用フィールドから読み込み
+            "primary_color": "#2c3e50",  # デフォルト値
+            "accent_color": "#34495e",   # デフォルト値
+            "title_font": settings.title_font or "default",   # 専用フィールドから読み込み
+            "body_font": settings.body_font or "default"      # 専用フィールドから読み込み
         }
     finally:
         db.close()
@@ -495,6 +570,87 @@ async def update_template_settings(settings: TemplateSettingsUpdate, current_use
         "message": "テンプレート設定が更新されました",
         "data": updated_settings
     }
+
+@app.post("/api/template/upload-logo")
+async def upload_logo(logo_file: UploadFile = File(...), current_user: User = Depends(get_current_user)):
+    """ロゴファイルアップロードエンドポイント（本番対応版）"""
+
+    # ファイル形式チェック
+    allowed_types = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"]
+    if logo_file.content_type not in allowed_types:
+        raise HTTPException(status_code=400, detail="対応していないファイル形式です。JPEG、PNG、GIF、WebPのみ対応しています。")
+
+    # ファイルサイズチェック (5MB制限)
+    max_size = 5 * 1024 * 1024  # 5MB
+    content = await logo_file.read()
+    if len(content) > max_size:
+        raise HTTPException(status_code=400, detail="ファイルサイズが大きすぎます。5MB以下にしてください。")
+
+    try:
+        # アップロードディレクトリの作成
+        upload_dir = "uploads/logos"
+        os.makedirs(upload_dir, exist_ok=True)
+
+        # ユニークなファイル名生成（セキュリティ対策）
+        file_extension = logo_file.filename.split('.')[-1].lower()
+        unique_filename = f"logo_{current_user.id}_{uuid.uuid4().hex[:8]}.{file_extension}"
+        file_path = os.path.join(upload_dir, unique_filename)
+
+        # ファイル保存
+        with open(file_path, "wb") as buffer:
+            buffer.write(content)
+
+        # ロゴURL生成（相対パス）
+        logo_url = f"/uploads/logos/{unique_filename}"
+
+        # データベースに保存（既存設定を更新）
+        update_user_template_settings(
+            current_user.id,
+            {"logo_url": logo_url}
+        )
+
+        return {
+            "success": True,
+            "logo_url": logo_url,
+            "file_size": len(content),
+            "message": "ロゴファイルが正常にアップロードされました"
+        }
+
+    except Exception as e:
+        print(f"ロゴアップロードエラー: {str(e)}")
+        raise HTTPException(status_code=500, detail="ファイルアップロードに失敗しました")
+
+@app.delete("/api/template/logo")
+async def delete_logo(current_user: User = Depends(get_current_user)):
+    """ロゴファイル削除エンドポイント"""
+    try:
+        # 現在の設定を取得
+        user_settings = get_user_template_settings(current_user.id)
+
+        if user_settings.get('logo_url'):
+            # ファイル削除
+            logo_path = user_settings['logo_url'].replace('/', os.sep)
+            if logo_path.startswith(os.sep):
+                logo_path = logo_path[1:]  # 先頭のスラッシュを除去
+
+            full_path = os.path.join(os.getcwd(), logo_path)
+            if os.path.exists(full_path):
+                os.remove(full_path)
+
+            # データベースからロゴURLを削除
+            update_user_template_settings(
+                current_user.id,
+                {"logo_url": None}
+            )
+
+        return {
+            "success": True,
+            "message": "ロゴファイルが削除されました"
+        }
+
+    except Exception as e:
+        print(f"ロゴ削除エラー: {str(e)}")
+        raise HTTPException(status_code=500, detail="ロゴファイルの削除に失敗しました")
 
 @app.post("/api/kyusei")
 async def calculate_kyusei(request: KyuseiRequest):
