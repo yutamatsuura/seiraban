@@ -25,28 +25,40 @@ import time
 print(f"=== DEBUG: 起動時刻 {time.strftime('%Y-%m-%d %H:%M:%S')} ===")
 
 # 必要なライブラリをインポート
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from pydantic import BaseModel, EmailStr
 from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, JSON, ForeignKey, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker, Session
 from sqlalchemy.sql import func
 from typing import Optional, Dict, Any
+from passlib.context import CryptContext
+from jose import JWTError, jwt
+from datetime import datetime, timedelta
 import subprocess
 import json
 import os
 import uuid
-from datetime import datetime
 import asyncio
 
 # 環境変数読み込み
 from dotenv import load_dotenv
 load_dotenv('.env.local')
 
+# 認証設定
+SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here-please-change-in-production")
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+# パスワードハッシュ化設定
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+security = HTTPBearer()
+
 # データベース設定
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:pass@localhost/db")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./unmei.db")
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
@@ -98,6 +110,73 @@ def get_db():
 def get_database_session():
     return SessionLocal()
 
+# 認証関数
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
+def get_password_hash(password):
+    return pwd_context.hash(password)
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=15)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+
+    db = get_database_session()
+    user = db.query(User).filter(User.email == email).first()
+    db.close()
+    if user is None:
+        raise credentials_exception
+    return user
+
+# Pydanticモデル
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str
+    business_name: Optional[str] = None
+    operator_name: Optional[str] = None
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+    user_id: int
+    email: str
+
+class UserResponse(BaseModel):
+    id: int
+    email: str
+    business_name: Optional[str]
+    operator_name: Optional[str]
+    is_active: bool
+    created_at: datetime
+
+class PasswordChangeRequest(BaseModel):
+    current_password: str
+    new_password: str
+
 app = FastAPI(title="運命織（UnmeiOri）診断鑑定システム API", version="1.0.0")
 
 # 認証ルーターは含まずスタンドアロンのmain.pyで動作
@@ -143,8 +222,58 @@ class DiagnosisResult(BaseModel):
     status: str  # "processing", "completed", "failed"
     error_message: Optional[str] = None
 
+# テンプレート設定関連モデル
+class TemplateSettingsUpdate(BaseModel):
+    business_name: Optional[str] = None
+    operator_name: Optional[str] = None
+    color_theme: Optional[str] = "default"
+    font_family: Optional[str] = "default"
+    font_scale: Optional[float] = 1.0
+    layout_style: Optional[str] = "standard"
+    logo_url: Optional[str] = None
+    custom_css: Optional[str] = None
+
+class TemplateSettings(BaseModel):
+    business_name: str = ""
+    operator_name: str = ""
+    color_theme: str = "default"
+    font_family: str = "default"
+    font_scale: float = 1.0
+    layout_style: str = "standard"
+    logo_url: Optional[str] = None
+    custom_css: Optional[str] = None
+
 # インメモリストレージ（本番ではデータベース使用）
 # メモリ内ストレージを削除 - 全てデータベースベースに統一
+
+# インメモリテンプレート設定ストレージ（ユーザー固有・簡易実装）
+user_template_settings_storage = {}  # user_id -> settings
+
+# デフォルトテンプレート設定
+default_template_settings = {
+    "business_name": "占いサロン 星花",
+    "operator_name": "星野 花子",
+    "color_theme": "default",
+    "font_family": "default",
+    "font_scale": 1.0,
+    "layout_style": "standard",
+    "logo_url": None,
+    "custom_css": None
+}
+
+def get_user_template_settings(user_id: int):
+    """ユーザーのテンプレート設定を取得（存在しない場合はデフォルト設定を返す）"""
+    if user_id not in user_template_settings_storage:
+        user_template_settings_storage[user_id] = default_template_settings.copy()
+    return user_template_settings_storage[user_id]
+
+def update_user_template_settings(user_id: int, settings_update: dict):
+    """ユーザーのテンプレート設定を更新"""
+    current_settings = get_user_template_settings(user_id)
+    for key, value in settings_update.items():
+        if value is not None:
+            current_settings[key] = value
+    return current_settings
 
 # データベースヘルパー関数
 def get_kantei_record_by_id(db, record_id: int):
@@ -183,32 +312,130 @@ async def root():
 async def health_check():
     return {"status": "healthy", "timestamp": datetime.now()}
 
-# 認証エンドポイント（簡単な実装）
-@app.get("/api/auth/verify")
-async def verify_auth():
-    """認証確認エンドポイント - 固定ユーザーID=70を返す"""
-    return {
-        "user": {
-            "id": 70,
-            "email": "test@example.com",
-            "business_name": "テスト事業者",
-            "operator_name": "テスト鑑定士"
+# 認証エンドポイント
+@app.post("/api/auth/register", response_model=dict)
+async def register(user: UserCreate):
+    """ユーザー登録"""
+    db = get_database_session()
+    try:
+        # 既存ユーザーチェック
+        existing_user = db.query(User).filter(User.email == user.email).first()
+        if existing_user:
+            raise HTTPException(status_code=400, detail="Email already registered")
+
+        # パスワードハッシュ化
+        hashed_password = get_password_hash(user.password)
+
+        # ユーザー作成
+        db_user = User(
+            email=user.email,
+            hashed_password=hashed_password,
+            business_name=user.business_name,
+            operator_name=user.operator_name,
+            is_active=True,
+            is_superuser=False,
+            subscription_status="active"
+        )
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+
+        return {
+            "success": True,
+            "message": "User registered successfully",
+            "user_id": db_user.id,
+            "email": db_user.email
         }
-    }
+    finally:
+        db.close()
+
+@app.post("/api/auth/login", response_model=Token)
+async def login(user_credentials: UserLogin):
+    """ログイン"""
+    db = get_database_session()
+    try:
+        # ユーザー認証
+        user = db.query(User).filter(User.email == user_credentials.email).first()
+        if not user or not verify_password(user_credentials.password, user.hashed_password):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect email or password",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        # JWTトークン作成
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(
+            data={"sub": user.email}, expires_delta=access_token_expires
+        )
+
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user_id": user.id,
+            "email": user.email
+        }
+    finally:
+        db.close()
+
+@app.post("/api/auth/logout")
+async def logout():
+    """ログアウト（JWTはステートレスなのでクライアント側で削除）"""
+    return {"success": True, "message": "Logged out successfully"}
+
+@app.get("/api/auth/verify", response_model=UserResponse)
+async def verify_auth(current_user: User = Depends(get_current_user)):
+    """認証確認"""
+    return current_user
+
+@app.post("/api/auth/change-password")
+async def change_password(password_data: PasswordChangeRequest, current_user: User = Depends(get_current_user)):
+    """パスワード変更"""
+    db = get_database_session()
+    try:
+        # 現在のパスワードを確認
+        if not verify_password(password_data.current_password, current_user.hashed_password):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Current password is incorrect"
+            )
+
+        # 新しいパスワードをハッシュ化
+        new_hashed_password = get_password_hash(password_data.new_password)
+
+        # パスワードを更新
+        current_user.hashed_password = new_hashed_password
+        db.add(current_user)
+        db.commit()
+
+        return {
+            "success": True,
+            "message": "Password changed successfully"
+        }
+    finally:
+        db.close()
 
 # テンプレート設定エンドポイント（簡単な実装）
 @app.get("/api/template/settings")
-async def get_template_settings():
-    """テンプレート設定取得エンドポイント"""
+async def get_template_settings(current_user: User = Depends(get_current_user)):
+    """テンプレート設定取得エンドポイント（ユーザー固有）"""
+    user_settings = get_user_template_settings(current_user.id)
+    return user_settings
+
+@app.put("/api/template/update")
+async def update_template_settings(settings: TemplateSettingsUpdate, current_user: User = Depends(get_current_user)):
+    """テンプレート設定更新エンドポイント（ユーザー固有）"""
+
+    # ユーザー固有の設定を更新
+    updated_settings = update_user_template_settings(
+        current_user.id,
+        settings.dict(exclude_unset=True)
+    )
+
     return {
         "success": True,
-        "data": {
-            "business_name": "テスト事業者",
-            "operator_name": "テスト鑑定士",
-            "color_theme": "default",
-            "font_family": "default",
-            "layout_style": "standard"
-        }
+        "message": "テンプレート設定が更新されました",
+        "data": updated_settings
     }
 
 @app.post("/api/kyusei")
@@ -250,7 +477,7 @@ async def calculate_seimei(request: SeimeiRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/diagnosis")
-async def create_diagnosis(request: DiagnosisRequest, background_tasks: BackgroundTasks):
+async def create_diagnosis(request: DiagnosisRequest, background_tasks: BackgroundTasks, current_user: User = Depends(get_current_user)):
     """統合診断作成API（データベースのみ使用）"""
     try:
         # データベースセッションを取得
@@ -259,13 +486,13 @@ async def create_diagnosis(request: DiagnosisRequest, background_tasks: Backgrou
         # 姓名判断用の名前を決定
         name_for_seimei = request.name or request.name_for_seimei or request.client_name
 
-        # 固定ユーザーID=70を使用（認証エンドポイントと一致）
-        fixed_user_id = 70
+        # 認証されたユーザーのIDを使用
+        user_id = current_user.id
 
         # データベースに鑑定記録を作成
         kantei_record = create_kantei_record(
             db=db,
-            user_id=fixed_user_id,
+            user_id=user_id,
             client_name=request.client_name,
             request_data=request
         )
@@ -294,7 +521,7 @@ async def create_diagnosis(request: DiagnosisRequest, background_tasks: Backgrou
         raise HTTPException(status_code=500, detail=f"診断作成エラー: {str(e)}")
 
 @app.get("/api/diagnosis/{diagnosis_id}")
-async def get_diagnosis(diagnosis_id: str, admin_mode: bool = True):
+async def get_diagnosis(diagnosis_id: str, admin_mode: bool = True, current_user: User = Depends(get_current_user)):
     """診断結果取得API（データベース専用）"""
     try:
         db = get_database_session()
@@ -303,6 +530,10 @@ async def get_diagnosis(diagnosis_id: str, admin_mode: bool = True):
         kantei_record = get_kantei_record_by_id(db, int(diagnosis_id))
         if not kantei_record:
             raise HTTPException(status_code=404, detail="診断が見つかりません")
+
+        # ユーザー権限チェック（管理者以外は自分の記録のみアクセス可能）
+        if not current_user.is_superuser and kantei_record.user_id != current_user.id:
+            raise HTTPException(status_code=403, detail="アクセス権限がありません")
 
         # 基本データ
         result = {
@@ -340,14 +571,14 @@ async def get_diagnosis(diagnosis_id: str, admin_mode: bool = True):
         raise HTTPException(status_code=500, detail=f"診断取得エラー: {str(e)}")
 
 @app.get("/api/diagnosis")
-async def list_diagnoses():
+async def list_diagnoses(current_user: User = Depends(get_current_user)):
     """診断一覧取得API（データベース連携版）"""
     try:
         # データベースからKanteiRecordを取得
         db = get_database_session()
 
-        # データベースから鑑定記録を取得（最新順）
-        kantei_records = db.query(KanteiRecord).order_by(KanteiRecord.created_at.desc()).all()
+        # 認証されたユーザーの鑑定記録のみ取得（最新順）
+        kantei_records = db.query(KanteiRecord).filter(KanteiRecord.user_id == current_user.id).order_by(KanteiRecord.created_at.desc()).all()
 
         # フロントエンド互換形式に変換
         diagnoses = []
@@ -2085,6 +2316,64 @@ async def process_diagnosis_db(record_id: int, birth_date: str, gender: str, nam
             db.close()
         except:
             pass
+
+# 管理者権限付与エンドポイント
+@app.post("/api/auth/promote-to-admin")
+async def promote_to_admin(credentials: UserLogin):
+    """ユーザーを管理者に昇格させる"""
+    db = next(get_db())
+    try:
+        # ユーザーの存在確認とパスワード検証
+        user = db.query(User).filter(User.email == credentials.email).first()
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="ユーザーが見つかりません"
+            )
+
+        # パスワード検証
+        if not verify_password(credentials.password, user.hashed_password):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="パスワードが正しくありません"
+            )
+
+        # 管理者権限を付与
+        user.is_superuser = True
+        db.commit()
+        db.refresh(user)
+
+        return {"success": True, "message": f"{credentials.email} に管理者権限を付与しました"}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"管理者権限付与エラー: {str(e)}")
+    finally:
+        db.close()
+
+# 失敗した診断データ削除エンドポイント
+@app.delete("/api/diagnosis/failed")
+async def delete_failed_diagnoses(current_user: User = Depends(get_current_user)):
+    """失敗した診断データを削除"""
+    db = next(get_db())
+    try:
+        # ユーザーの失敗した診断を削除
+        deleted_count = db.query(KanteiRecord).filter(
+            KanteiRecord.user_id == current_user.id,
+            KanteiRecord.status == "failed"
+        ).delete()
+
+        db.commit()
+
+        return {"success": True, "message": f"{deleted_count}件の失敗した診断データを削除しました"}
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"削除エラー: {str(e)}")
+    finally:
+        db.close()
 
 if __name__ == "__main__":
     import uvicorn

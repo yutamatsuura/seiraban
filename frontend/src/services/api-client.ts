@@ -222,10 +222,11 @@ class ApiClient {
   }
 
   async updateTemplateSettings(settings: TemplateSettingsUpdate) {
-    return this.request<TemplateSettings>('/api/template/update', {
+    const response = await this.request<{success: boolean, message: string, data: TemplateSettings}>('/api/template/update', {
       method: 'PUT',
       body: JSON.stringify(settings),
     })
+    return response.data
   }
 
   async uploadLogo(file: File) {

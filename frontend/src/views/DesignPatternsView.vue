@@ -3,10 +3,10 @@
     <div class="design-patterns">
       <div class="page-header">
         <h1 class="page-title">
-          <span class="page-title-icon">🎨</span>
-          鑑定書デザインパターン比較
+          <img src="/src/assets/icons/template.svg" alt="テンプレート" class="page-title-icon" />
+          テンプレート設定
         </h1>
-        <p class="page-subtitle">様々なデザインパターンを比較して理想的なレイアウトを選択できます</p>
+        <p class="page-subtitle">お好みのデザインを選んで鑑定書のスタイルをカスタマイズしましょう</p>
       </div>
 
       <!-- パターン選択 -->
@@ -34,40 +34,67 @@
           </button>
         </div>
         <div
-          class="diagnosis-document"
-          :class="[`pattern-${selectedPattern}`, `theme-${selectedTheme}`]"
+          class="diagnosis-content"
+          :class="{
+            [`pattern-${selectedPattern}`]: selectedPattern,
+            [`theme-${selectedTheme}`]: selectedTheme,
+            [`font-${fontFamily}`]: fontFamily,
+            [`layout-standard`]: true
+          }"
           :style="dynamicStyles"
+          id="diagnosis-report"
         >
 
           <!-- パターンA: クリーン&コンパクト -->
           <template v-if="selectedPattern === 'clean'">
+            <!-- Pattern A: Modern Minimal Header -->
             <div class="template-header modern-minimal">
               <div class="header-background"></div>
               <div class="header-content">
+                <!-- Logo Section -->
                 <div class="logo-section">
-                  <div class="logo-placeholder">
-                    <img v-if="logoPreviewUrl" :src="logoPreviewUrl" alt="ロゴ" class="logo-image" />
-                    <div v-else class="logo-placeholder-content">ロゴ</div>
+                  <div v-if="logoUrl" class="logo-container">
+                    <img :src="logoUrl" alt="ロゴ" class="logo-image" />
+                  </div>
+                  <div v-else class="logo-placeholder">
+                    <div class="logo-placeholder-content">
+                      ロゴ未設定
+                    </div>
                   </div>
                 </div>
+
+                <!-- Main Title Section -->
                 <div class="title-section">
                   <div class="title-ornament"></div>
                   <h1 class="diagnosis-title">九星気学・姓名判断 総合鑑定書</h1>
                   <div class="title-ornament"></div>
                 </div>
+
+                <!-- Business Info Section -->
                 <div class="business-section">
-                  <div class="business-card">
-                    <div class="business-name">{{ businessName }}</div>
-                    <div class="operator-name">
-                      <span class="operator-label">鑑定士</span>
-                      <span class="operator-value">{{ operatorName }}</span>
+                  <div v-if="businessName" class="business-card">
+                    <div class="business-info">
+                      <h2 class="business-name">{{ businessName }}</h2>
+                      <p v-if="operatorName" class="operator-name">
+                        <span class="operator-label">鑑定士</span>
+                        <span class="operator-value">{{ operatorName }}</span>
+                      </p>
                     </div>
                   </div>
                 </div>
               </div>
+
+              <!-- Date Section -->
+              <div class="date-section">
+                <div class="date-container">
+                  <span class="date-label">鑑定実施日</span>
+                  <span class="date-value">{{ currentDate }}</span>
+                </div>
+              </div>
             </div>
 
-            <div class="client-info-card">
+            <!-- Client Information -->
+            <div class="card client-info">
               <div class="card-header">
                 <h2>依頼者情報</h2>
               </div>
@@ -82,22 +109,28 @@
                     <span>昭和60年3月15日（39歳）</span>
                   </div>
                   <div class="info-item">
-                    <label>性別</label>
-                    <span>男性</span>
+                    <label>出生時間</label>
+                    <span>午前10時30分</span>
                   </div>
                   <div class="info-item">
                     <label>十二支</label>
                     <span>乙丑</span>
                   </div>
+                  <div class="info-item">
+                    <label>性別</label>
+                    <span>男性</span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div class="client-info-card">
+            <!-- Kyusei (Nine Star Astrology) Results -->
+            <div class="card kyusei-results">
               <div class="card-header">
                 <h2>九星気学・吉方位の鑑定結果</h2>
               </div>
               <div class="card-body">
+                <!-- Basic Nine Star Information -->
                 <div class="section">
                   <h3>基本九星情報</h3>
                   <div class="nine-star-grid">
@@ -109,57 +142,240 @@
                       <label>月命星</label>
                       <span class="star-value">八白土星</span>
                     </div>
-                    <div class="star-item">
-                      <label>日命星</label>
-                      <span class="star-value">六白金星</span>
+                  </div>
+                </div>
+
+                <!-- Zodiac Information -->
+                <div class="section">
+                  <h3>干支情報</h3>
+                  <div class="zodiac-grid">
+                    <div class="zodiac-item">
+                      <label>年干支</label>
+                      <span>乙丑</span>
+                    </div>
+                    <div class="zodiac-item">
+                      <label>月干支</label>
+                      <span>戊寅</span>
+                    </div>
+                    <div class="zodiac-item">
+                      <label>日干支</label>
+                      <span>甲子</span>
+                    </div>
+                    <div class="zodiac-item">
+                      <label>納音</label>
+                      <span>海中金</span>
                     </div>
                   </div>
                 </div>
+
+                <!-- 吉方位情報 -->
                 <div class="section">
-                  <h3>今月の吉方位</h3>
-                  <div class="direction-info">
-                    <span class="direction-label">最良方位：</span>
-                    <span class="direction-value">南東（巽）</span>
+                  <h3>吉方位情報</h3>
+                  <div class="direction-grid">
+                    <div class="direction-item">
+                      <label>最大吉方</label>
+                      <span>南東</span>
+                    </div>
+                    <div class="direction-item">
+                      <label>吉方</label>
+                      <span>南西</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 傾斜・同会情報 -->
+                <div class="section">
+                  <h3>傾斜・同会情報</h3>
+                  <div class="special-info-grid">
+                    <div class="special-info-item">
+                      <label>傾斜</label>
+                      <span>四緑木星</span>
+                    </div>
+                    <div class="special-info-item">
+                      <label>同会</label>
+                      <span>九紫火星</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div class="client-info-card">
+            <!-- Seimei (Name Divination) Results -->
+            <div class="card seimei-results">
               <div class="card-header">
                 <h2>姓名判断の鑑定結果</h2>
               </div>
               <div class="card-body">
+                <!-- Character Details -->
                 <div class="section">
                   <h3>文字の構成</h3>
-                  <div class="character-info">
-                    <span>田(5画) + 中(4画) = 9画</span>
-                    <span>太(4画) + 郎(9画) = 13画</span>
+                  <div class="character-table">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>文字</th>
+                          <th>姓1</th>
+                          <th>姓2</th>
+                          <th>名1</th>
+                          <th>名2</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>画数</td>
+                          <td>5</td>
+                          <td>4</td>
+                          <td>4</td>
+                          <td>9</td>
+                        </tr>
+                        <tr>
+                          <td>五行</td>
+                          <td>土</td>
+                          <td>火</td>
+                          <td>金</td>
+                          <td>水</td>
+                        </tr>
+                        <tr>
+                          <td>陰陽</td>
+                          <td>陽</td>
+                          <td>陰</td>
+                          <td>陰</td>
+                          <td>陽</td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
                 </div>
+
+                <!-- Stroke Count Analysis -->
                 <div class="section">
-                  <h3>運勢判定</h3>
-                  <div class="fortune-summary">
-                    <div class="fortune-item">
-                      <span class="fortune-label">総合運：</span>
-                      <span class="fortune-value">吉</span>
+                  <div class="stroke-grid">
+                    <div class="stroke-item">
+                      <label>天格</label>
+                      <span>9</span>
                     </div>
-                    <div class="fortune-item">
-                      <span class="fortune-label">性格：</span>
-                      <span class="fortune-value">誠実で努力家</span>
+                    <div class="stroke-item">
+                      <label>人格</label>
+                      <span>8</span>
+                    </div>
+                    <div class="stroke-item">
+                      <label>地格</label>
+                      <span>13</span>
+                    </div>
+                    <div class="stroke-item">
+                      <label>総画</label>
+                      <span>22</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Name Analysis Results -->
+                <div class="section">
+                  <h3>鑑定の結果</h3>
+                  <div class="result-content">
+                    <div class="score-section">
+                      <div class="score-value">85</div>
+                      <div class="score-label">点/100</div>
+                    </div>
+                    <div class="message-section">
+                      <p>総合的に良好な名前です。バランスが取れており、人生において安定した運勢を保つことができるでしょう。</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 文字による鑑定 -->
+                <div class="section">
+                  <h3>文字による鑑定</h3>
+                  <div class="character-evaluation-grid">
+                    <div class="character-evaluation-item">
+                      <div class="evaluation-header">
+                        <span class="character-name">田</span>
+                      </div>
+                      <div class="evaluation-detail">【田】は豊かな土地を表し、安定と豊穣を意味します。基礎がしっかりしており、努力が実を結ぶ傾向があります。</div>
+                    </div>
+                    <div class="character-evaluation-item">
+                      <div class="evaluation-header">
+                        <span class="character-name">中</span>
+                      </div>
+                      <div class="evaluation-detail">【中】は中心、バランスを意味し、物事の本質を見抜く力があることを示しています。</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 陰陽による鑑定 -->
+                <div class="section">
+                  <h3>陰陽による鑑定</h3>
+                  <div class="character-evaluation-grid">
+                    <div class="character-evaluation-item">
+                      <div class="evaluation-header">
+                        <span class="character-name">姓名全体</span>
+                      </div>
+                      <div class="evaluation-detail">陰陽のバランスが良く、【陽・陰・陰・陽】の配列となっています。安定感がありながらも活動力も備えています。</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 五行による鑑定 -->
+                <div class="section">
+                  <h3>五行による鑑定</h3>
+                  <div class="character-evaluation-grid">
+                    <div class="character-evaluation-item">
+                      <div class="evaluation-header">
+                        <span class="character-name">五行の流れ</span>
+                      </div>
+                      <div class="evaluation-detail">【土・火・金・水】の順で、各要素が調和しており、運気の流れが良好です。</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 画数による鑑定 -->
+                <div class="section">
+                  <h3>画数による鑑定</h3>
+                  <div class="character-evaluation-grid">
+                    <div class="character-evaluation-item">
+                      <div class="evaluation-header">
+                        <span class="character-name">天格（9画）</span>
+                      </div>
+                      <div class="evaluation-detail">【天格9画】は完成を意味し、優れた才能と強い意志力を表します。</div>
+                    </div>
+                    <div class="character-evaluation-item">
+                      <div class="evaluation-header">
+                        <span class="character-name">人格（8画）</span>
+                      </div>
+                      <div class="evaluation-detail">【人格8画】は発展運を持ち、努力により成功を掴む力があります。</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 天地による鑑定 -->
+                <div class="section">
+                  <h3>天地による鑑定</h3>
+                  <div class="character-evaluation-grid">
+                    <div class="character-evaluation-item">
+                      <div class="evaluation-header">
+                        <span class="character-name">天地の配置</span>
+                      </div>
+                      <div class="evaluation-detail">天（姓）と地（名）のバランスが良く、人生において安定した基盤を築くことができます。</div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div class="template-footer">
-              <div class="footer-info">
-                <div class="footer-business">{{ businessName }}</div>
-                <div class="footer-operator">鑑定士：{{ operatorName }}</div>
-              </div>
-              <div class="footer-disclaimer">
-                ※この鑑定は参考用であり、結果について当事務所は責任を負いかねます。
+            <!-- Template Footer -->
+            <div class="template-footer modern-minimal">
+              <div class="footer-content">
+                <div v-if="businessName || operatorName" class="footer-info">
+                  <div v-if="businessName" class="footer-business">
+                    {{ businessName }}
+                  </div>
+                  <div v-if="operatorName" class="footer-operator">
+                    鑑定士：{{ operatorName }}
+                  </div>
+                </div>
+                <div class="footer-disclaimer">
+                  ※この鑑定は参考用であり、結果について当事務所は責任を負いかねます。
+                </div>
               </div>
             </div>
           </template>
@@ -599,26 +815,54 @@ const themes = ref({
   professional: { name: 'プロフェッショナル', primary: '#34495e', accent: '#2c3e50' }
 })
 
+// テンプレート設定に基づく動的スタイル（PreviewView.vueと完全同期）
 const dynamicStyles = computed(() => {
-  const theme = themes.value[selectedTheme.value]
+  const styles = {}
+
+  // カラーテーマの適用
+  if (selectedTheme.value && selectedTheme.value !== 'default') {
+    const themeColors = getThemeColors(selectedTheme.value)
+    styles['--primary-color'] = themeColors.primary
+    styles['--accent-color'] = themeColors.accent
+  }
+
+  // フォントファミリーの適用
+  if (fontFamily.value && fontFamily.value !== 'default') {
+    styles['--main-font'] = getFontFamily(fontFamily.value)
+  }
+
+  // フォントサイズスケール
   const fontSizeMap = {
     small: '0.9',
     medium: '1.0',
     large: '1.2'
   }
-  const fontScale = fontSizeMap[fontSize.value]
+  styles['--font-scale'] = fontSizeMap[fontSize.value] || '1.0'
 
-  return {
-    '--primary-color': theme.primary,
-    '--accent-color': theme.accent,
-    '--font-scale': fontScale,
-    'font-family': fontFamily.value === 'default' ? '' :
-                   fontFamily.value === 'noto-serif' ? '"Noto Serif JP", serif' :
-                   fontFamily.value === 'noto-sans' ? '"Noto Sans JP", sans-serif' :
-                   fontFamily.value === 'mincho' ? '"Yu Mincho", serif' :
-                   fontFamily.value === 'gothic' ? '"Yu Gothic", sans-serif' : ''
-  }
+  return styles
 })
+
+// テーマカラーの取得（PreviewView.vueと完全同期）
+const getThemeColors = (theme) => {
+  const colorMap = {
+    elegant: { primary: '#8e44ad', accent: '#9b59b6' },
+    warm: { primary: '#e67e22', accent: '#d35400' },
+    natural: { primary: '#27ae60', accent: '#2ecc71' },
+    professional: { primary: '#34495e', accent: '#2c3e50' }
+  }
+  return colorMap[theme] || { primary: '#3498db', accent: '#2980b9' }
+}
+
+// フォントファミリーの取得（PreviewView.vueと完全同期）
+const getFontFamily = (font) => {
+  const fontMap = {
+    'noto-serif': '"Noto Serif JP", serif',
+    'noto-sans': '"Noto Sans JP", sans-serif',
+    'hiragino': '"Hiragino Mincho ProN", serif',
+    'yu-mincho': '"Yu Mincho", serif'
+  }
+  return fontMap[font] || 'inherit'
+}
 
 const selectPattern = (pattern: string) => {
   selectedPattern.value = pattern
@@ -661,6 +905,14 @@ const handleLogoUpload = (event: Event) => {
     reader.readAsDataURL(file)
   }
 }
+
+// ロゴURLの取得（PreviewView.vueと完全同期）
+const logoUrl = computed(() => {
+  if (!logoPreviewUrl.value) return null
+  const url = logoPreviewUrl.value
+  const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8502'
+  return url.startsWith('http') ? url : `${baseURL}/${url}`
+})
 
 // ロゴ削除
 const removeLogo = async () => {
@@ -776,6 +1028,26 @@ const selectThisPattern = async () => {
   }
 }
 
+// 日付フォーマット（PreviewView.vueと完全同期）
+const formatDate = (dateString) => {
+  if (!dateString) return '未設定'
+  try {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('ja-JP', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
+  } catch {
+    return dateString
+  }
+}
+
+// 現在の日付を取得
+const currentDate = computed(() => {
+  return formatDate(new Date().toISOString())
+})
+
 // ページロード時に設定を読み込み
 onMounted(() => {
   loadSettings()
@@ -784,6 +1056,7 @@ onMounted(() => {
 
 <style scoped lang="scss">
 @import '@/styles/variables.scss';
+@import '@/styles/diagnosis-templates.scss';
 
 .design-patterns {
   @include page-container;
@@ -899,40 +1172,11 @@ onMounted(() => {
   }
 }
 
-.diagnosis-document {
-  max-width: 800px;
-  margin: 0 auto;
-  background: white;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
-  overflow: hidden;
+.diagnosis-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 
-  // フォントサイズスケーリング
-  font-size: calc(1rem * var(--font-scale, 1));
-
-  .diagnosis-title {
-    font-size: calc(1.4rem * var(--font-scale, 1));
-  }
-
-  .business-name {
-    font-size: calc(1.1rem * var(--font-scale, 1));
-  }
-
-  .card-header h2 {
-    font-size: calc(1.1rem * var(--font-scale, 1));
-  }
-
-  .section h3 {
-    font-size: calc(1rem * var(--font-scale, 1));
-  }
-
-  label, .info-item label {
-    font-size: calc(0.9rem * var(--font-scale, 1));
-  }
-
-  span, .info-item span {
-    font-size: calc(1rem * var(--font-scale, 1));
-  }
 }
 
 // 設定パネル
@@ -1066,275 +1310,6 @@ onMounted(() => {
   }
 }
 
-// パターンA: クリーン&コンパクト（実際のPreviewView.vueのスタイル）
-.template-header.modern-minimal {
-  background: white;
-  border: 2px solid var(--primary-color, #3498db);
-  border-radius: 8px;
-  margin-bottom: 24px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-
-  .header-background {
-    display: none;
-  }
-
-  .header-content {
-    padding: 20px 24px;
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    gap: 20px;
-    align-items: center;
-  }
-
-  .logo-section {
-    .logo-placeholder {
-      width: 120px;
-      height: 50px;
-      background: #f5f5f5;
-      border: 2px dashed #ccc;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-
-      .logo-placeholder-content {
-        color: #999;
-        font-size: 10px;
-        text-align: center;
-        line-height: 1.2;
-      }
-
-      .logo-image {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-        border-radius: 6px;
-      }
-    }
-  }
-
-  .title-section {
-    .title-ornament {
-      display: none;
-    }
-
-    .diagnosis-title {
-      font-size: 1.4rem;
-      font-weight: 600;
-      margin: 0;
-      color: var(--primary-color, #3498db);
-      line-height: 1.3;
-    }
-  }
-
-  .business-section {
-    text-align: right;
-
-    .business-card {
-      background: none;
-      border: none;
-      padding: 0;
-
-      .business-name {
-        font-size: 1.1rem;
-        font-weight: 600;
-        margin: 0 0 4px 0;
-        color: var(--primary-color, #3498db);
-      }
-
-      .operator-name {
-        margin: 0;
-        color: #666;
-        font-size: 0.9rem;
-
-        .operator-label {
-          margin-right: 4px;
-        }
-      }
-    }
-  }
-}
-
-.client-info-card {
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  background: white;
-  overflow: hidden;
-  margin-bottom: 16px;
-
-  .card-header {
-    background: var(--primary-color, #3498db);
-    color: white;
-    padding: 12px 20px;
-    border-bottom: none;
-
-    h2 {
-      margin: 0;
-      font-size: 1.1rem;
-      font-weight: 600;
-    }
-  }
-
-  .card-body {
-    padding: 20px;
-
-    .info-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-
-      .info-item {
-        display: flex;
-        align-items: baseline;
-        gap: 12px;
-
-        label {
-          font-weight: 600;
-          color: #555;
-          min-width: 80px;
-          font-size: 0.9rem;
-        }
-
-        span {
-          color: #333;
-          font-size: 1rem;
-        }
-      }
-    }
-
-    .section {
-      margin-bottom: 20px;
-
-      &:last-child {
-        margin-bottom: 0;
-      }
-
-      h3 {
-        font-size: 1rem;
-        font-weight: 600;
-        color: var(--primary-color, #3498db);
-        margin: 0 0 12px 0;
-        border-bottom: 1px solid #e0e0e0;
-        padding-bottom: 4px;
-      }
-    }
-
-    .nine-star-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 12px;
-
-      .star-item {
-        display: flex;
-        align-items: baseline;
-        gap: 8px;
-
-        label {
-          font-weight: 600;
-          color: #555;
-          font-size: 0.85rem;
-          min-width: 60px;
-        }
-
-        .star-value {
-          color: var(--primary-color, #3498db);
-          font-weight: 600;
-          font-size: 0.9rem;
-        }
-      }
-    }
-
-    .direction-info {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-
-      .direction-label {
-        font-weight: 600;
-        color: #555;
-        font-size: 0.9rem;
-      }
-
-      .direction-value {
-        color: var(--primary-color, #3498db);
-        font-weight: 600;
-        font-size: 1rem;
-      }
-    }
-
-    .character-info {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-
-      span {
-        color: #333;
-        font-size: 0.9rem;
-        padding: 4px 8px;
-        background: #f8f9fa;
-        border-radius: 4px;
-      }
-    }
-
-    .fortune-summary {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-
-      .fortune-item {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-
-        .fortune-label {
-          font-weight: 600;
-          color: #555;
-          font-size: 0.9rem;
-          min-width: 70px;
-        }
-
-        .fortune-value {
-          color: var(--primary-color, #3498db);
-          font-weight: 600;
-          font-size: 0.9rem;
-        }
-      }
-    }
-  }
-}
-
-.template-footer {
-  margin-top: 32px;
-  border-top: 2px solid var(--primary-color, #3498db);
-  background: #f8f9fa;
-  padding: 20px 24px;
-  text-align: center;
-
-  .footer-info {
-    margin-bottom: 16px;
-
-    .footer-business {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: var(--primary-color, #3498db);
-      margin-bottom: 4px;
-    }
-
-    .footer-operator {
-      color: #666;
-      font-size: 0.9rem;
-    }
-  }
-
-  .footer-disclaimer {
-    color: #888;
-    font-size: 0.8rem;
-    line-height: 1.4;
-  }
-}
 
 // パターンB: エレガント&クラシック
 .template-header.elegant-classic {

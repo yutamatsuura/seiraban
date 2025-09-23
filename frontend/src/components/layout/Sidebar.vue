@@ -77,16 +77,10 @@ const menuItems = [
     description: '過去の結果を管理'
   },
   {
-    path: '/kantei/templates',
+    path: '/kantei/design-patterns',
     iconPath: '/src/assets/icons/template.svg',
     label: 'テンプレート設定',
     description: '鑑定書デザイン調整'
-  },
-  {
-    path: '/kantei/design-patterns',
-    iconPath: '/src/assets/icons/template.svg',
-    label: 'デザインパターン',
-    description: '複数デザイン比較選択'
   },
   {
     path: '/profile',

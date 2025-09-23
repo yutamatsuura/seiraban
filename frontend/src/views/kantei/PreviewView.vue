@@ -64,6 +64,7 @@
       v-else-if="diagnosis && (diagnosis.status === 'completed' || diagnosis.status === 'partial')"
       class="diagnosis-content"
       :class="{
+        'pattern-clean': true,
         [`theme-${templateSettings?.color_theme}`]: templateSettings?.color_theme,
         [`font-${templateSettings?.font_family}`]: templateSettings?.font_family,
         [`layout-${templateSettings?.layout_style}`]: templateSettings?.layout_style
@@ -107,6 +108,16 @@
                 <p v-if="templateSettings?.operator_name" class="operator-name">
                   <span class="operator-label">鑑定士</span>
                   <span class="operator-value">{{ templateSettings.operator_name }}</span>
+                </p>
+              </div>
+            </div>
+            <!-- デバッグ表示：テンプレート設定が読み込まれていない場合 -->
+            <div v-else-if="!templateLoading" class="business-card debug-placeholder">
+              <div class="business-info">
+                <h2 class="business-name">テンプレート設定未取得</h2>
+                <p class="operator-name">
+                  <span class="operator-label">状態:</span>
+                  <span class="operator-value">{{ templateSettings ? 'データあり' : 'データなし' }}</span>
                 </p>
               </div>
             </div>
@@ -525,11 +536,13 @@ const loadDiagnosis = async () => {
 // テンプレート設定読み込み
 const loadTemplateSettings = async () => {
   templateLoading.value = true
+  console.log('🔧 テンプレート設定読み込み開始')
   try {
     const settings = await apiClient.getTemplateSettings()
+    console.log('✅ テンプレート設定読み込み成功:', settings)
     templateSettings.value = settings
   } catch (err: any) {
-    console.error('Failed to load template settings:', err)
+    console.error('❌ テンプレート設定読み込み失敗:', err)
     // テンプレート設定の読み込み失敗はサイレントにする
   } finally {
     templateLoading.value = false
@@ -875,10 +888,11 @@ onUnmounted(() => {
 
 <style scoped lang="scss">
 @import '@/styles/variables.scss';
+@import '@/styles/diagnosis-templates.scss';
 
 .diagnosis-meta {
   text-align: right;
-  margin-bottom: 8px;
+  margin-bottom: 1px;
   padding: 8px 0;
 
   .meta-item {
@@ -995,44 +1009,7 @@ onUnmounted(() => {
   width: 100%;
 }
 
-// 姓名判断セクション用のスタイル
-.name-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-  padding: 16px;
-  background: #f9f9f9;
-  border-radius: 8px;
-
-  .name-display {
-    .analyzed-name {
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: var(--text-primary);
-    }
-  }
-
-  .score-display {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-
-    .score-value {
-      font-size: 2.5rem;
-      font-weight: bold;
-      color: var(--primary-main);
-      line-height: 1;
-    }
-
-    .score-label {
-      font-size: 1.2rem;
-      color: var(--text-secondary);
-      margin-top: 8px;
-      align-self: flex-end;
-    }
-  }
-}
+// 姓名判断セクション用のスタイル（共通CSSファイルにて定義）
 
 // 総評メッセージのスタイル
 .sohyo-message {
@@ -1050,200 +1027,10 @@ onUnmounted(() => {
   }
 }
 
-// 文字による鑑定のスタイル
-.character-evaluation-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.character-evaluation-item {
-  background: #f8f9fa;
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
-  padding: 16px;
-
-  .evaluation-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 12px;
-
-    .character-name {
-      font-size: 1.1rem;
-      font-weight: bold;
-      color: var(--text-primary);
-    }
-
-    .evaluation-category {
-      background: #007bff;
-      color: white;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 0.85rem;
-      font-weight: 500;
-    }
-  }
-
-  .evaluation-detail {
-    color: var(--text-secondary);
-    line-height: 1.6;
-    font-size: 0.95rem;
-  }
-}
+// 文字による鑑定、文字表、結果表示などのスタイル（共通CSSファイルにて定義）
 
 .section-spacing {
   margin-top: 20px;
-}
-
-.character-table {
-  margin: 16px 0;
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-
-    th, td {
-      padding: 12px 16px;
-      text-align: center;
-      border-bottom: 1px solid #e5e7eb;
-    }
-
-    th {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      font-weight: 600;
-      font-size: 1.1rem;
-
-      &:first-child {
-        background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
-      }
-    }
-
-    td {
-      color: var(--text-primary);
-      font-weight: 500;
-
-      &:first-child {
-        background: #f8fafc;
-        font-weight: 600;
-        color: var(--text-secondary);
-      }
-    }
-
-    tr:last-child td {
-      border-bottom: none;
-    }
-
-    tr:hover {
-      background: rgba(102, 126, 234, 0.05);
-    }
-  }
-}
-
-.result-content {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  padding: 24px;
-  border-radius: 12px;
-  border: 1px solid #cbd5e1;
-
-  .score-section {
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-    min-width: 120px;
-
-    .score-value {
-      font-size: 3rem;
-      font-weight: 700;
-      color: #1e40af;
-      line-height: 1;
-    }
-
-    .score-label {
-      font-size: 1.2rem;
-      color: #64748b;
-      font-weight: 500;
-    }
-  }
-
-  .message-section {
-    flex: 1;
-
-    p {
-      margin: 0;
-      font-size: 1rem;
-      line-height: 1.6;
-      color: var(--text-primary);
-      font-weight: 500;
-    }
-  }
-}
-
-.character-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 16px;
-  margin-bottom: 24px;
-
-  .character-item {
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    padding: 12px;
-    text-align: center;
-
-    .char-label {
-      font-size: 0.8rem;
-      color: var(--text-secondary);
-      margin-bottom: 4px;
-    }
-
-    .char-details {
-      font-size: 0.9rem;
-      color: var(--text-primary);
-      font-weight: 500;
-    }
-  }
-}
-
-.stroke-analysis {
-  margin-bottom: 24px;
-
-  .stroke-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 12px;
-    margin-bottom: 16px;
-
-    .stroke-item {
-      background: white;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      padding: 12px;
-      text-align: center;
-
-      .stroke-type {
-        font-size: 0.8rem;
-        color: var(--text-secondary);
-        margin-bottom: 4px;
-      }
-
-      .stroke-value {
-        font-size: 1.1rem;
-        font-weight: bold;
-        color: var(--primary-main);
-      }
-    }
-  }
 }
 
 .appraisal-results {
@@ -1258,7 +1045,7 @@ onUnmounted(() => {
       font-size: 0.9rem;
       font-weight: bold;
       color: var(--primary-main);
-      margin-bottom: 8px;
+      margin-bottom: 1px;
     }
 
     .appraisal-content {
@@ -1322,7 +1109,7 @@ onUnmounted(() => {
       align-items: center;
       justify-content: center;
       font-weight: bold;
-      margin-bottom: 8px;
+      margin-bottom: 1px;
       transition: all 0.3s ease;
     }
 
@@ -1372,7 +1159,6 @@ onUnmounted(() => {
   border: 2px solid var(--primary-main);
   border-radius: 8px;
   padding: 20px;
-  margin-bottom: 24px;
   box-shadow: var(--shadow-1);
 
   .processing-content {
@@ -1416,98 +1202,7 @@ onUnmounted(() => {
   gap: 24px;
 }
 
-.card {
-  @include card;
-
-  .card-header {
-    background: var(--background-paper);
-    padding: 20px 24px;
-    border-bottom: 1px solid var(--border-color);
-
-    h2, h3 {
-      margin: 0;
-      font-size: 1.25rem;
-      color: var(--text-primary);
-    }
-  }
-
-  .card-body {
-    padding: 24px;
-  }
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-}
-
-.info-item {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-
-  label {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-  }
-
-  span {
-    font-size: 16px;
-    color: var(--text-primary);
-    font-weight: 500;
-  }
-}
-
-.section {
-  margin-bottom: 24px;
-
-  &:last-child {
-    margin-bottom: 0;
-  }
-
-  h3 {
-    margin: 0 0 16px 0;
-    font-size: 1.1rem;
-    color: var(--text-primary);
-    border-bottom: 2px solid var(--primary-main);
-    padding-bottom: 8px;
-  }
-}
-
-.nine-star-grid, .zodiac-grid, .stroke-grid, .direction-grid, .special-info-grid, .naon-info {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 12px;
-}
-
-.star-item, .zodiac-item, .stroke-item, .direction-item, .special-info-item, .naon-item {
-  background: #f9f9f9;
-  padding: 12px;
-  border-radius: 6px;
-  text-align: center;
-
-  label {
-    display: block;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    margin-bottom: 4px;
-  }
-
-  span {
-    font-size: 16px;
-    font-weight: bold;
-    color: var(--text-primary);
-  }
-
-  .star-value {
-    color: var(--primary-main);
-    font-size: 18px;
-  }
-}
+// card, info-grid, info-item, nine-star-grid, zodiac-grid, stroke-grid等（共通CSSファイルにて定義）
 
 .age-info {
   text-align: center;
@@ -1520,24 +1215,7 @@ onUnmounted(() => {
   }
 }
 
-.name-info {
-  text-align: center;
-  padding: 20px;
-
-  .name-display {
-    background: #f9f9f9;
-    padding: 20px;
-    border-radius: 8px;
-    border: 2px solid var(--primary-light);
-
-    .analyzed-name {
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: var(--text-primary);
-      letter-spacing: 0.1em;
-    }
-  }
-}
+// name-info（共通CSSファイルにて定義）
 
 .interpretation-content {
   font-size: 16px;
@@ -1593,7 +1271,7 @@ onUnmounted(() => {
     background: #e0e0e0;
     border-radius: 20px;
     overflow: hidden;
-    margin-bottom: 8px;
+    margin-bottom: 1px;
 
     .progress-fill {
       height: 100%;
@@ -1625,9 +1303,7 @@ onUnmounted(() => {
     }
   }
 
-  .info-grid, .nine-star-grid, .zodiac-grid, .stroke-grid, .direction-grid, .special-info-grid, .naon-info {
-    grid-template-columns: 1fr;
-  }
+  // レスポンシブ対応（共通CSSファイルにて定義）
 
   .btn {
     flex: 1;
@@ -1699,287 +1375,5 @@ onUnmounted(() => {
   }
 }
 
-// Pattern A: Clean & Compact Design
-.template-header.modern-minimal {
-  background: white;
-  border: 2px solid var(--primary-color, #3498db);
-  border-radius: 8px;
-  margin-bottom: 24px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-
-  .header-background {
-    display: none;
-  }
-
-  .header-content {
-    padding: 20px 24px;
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    gap: 20px;
-    align-items: center;
-
-    @media (max-width: 768px) {
-      grid-template-columns: 1fr;
-      text-align: center;
-      gap: 16px;
-    }
-  }
-
-  // Logo Section
-  .logo-section {
-    .logo-container {
-      width: 60px;
-      height: 60px;
-      border-radius: 8px;
-      overflow: hidden;
-      border: 1px solid #e0e0e0;
-
-      .logo-image {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-      }
-    }
-
-    .logo-placeholder {
-      width: 60px;
-      height: 60px;
-      background: #f5f5f5;
-      border: 2px dashed #ccc;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      .logo-placeholder-content {
-        color: #999;
-        font-size: 10px;
-        text-align: center;
-        line-height: 1.2;
-      }
-    }
-  }
-
-  // Title Section
-  .title-section {
-    .title-ornament {
-      display: none;
-    }
-
-    .diagnosis-title {
-      font-size: 1.8rem;
-      font-weight: 600;
-      margin: 0;
-      color: var(--primary-color, #3498db);
-      line-height: 1.3;
-
-      @media (max-width: 768px) {
-        font-size: 1.4rem;
-      }
-    }
-  }
-
-  // Business Section
-  .business-section {
-    text-align: right;
-
-    @media (max-width: 768px) {
-      text-align: center;
-    }
-
-    .business-card {
-      background: none;
-      border: none;
-      padding: 0;
-
-      .business-name {
-        font-size: 1.1rem;
-        font-weight: 600;
-        margin: 0 0 4px 0;
-        color: var(--primary-color, #3498db);
-      }
-
-      .operator-name {
-        margin: 0;
-        font-size: 0.9rem;
-        color: #666;
-
-        .operator-label {
-          margin-right: 4px;
-        }
-
-        .operator-value {
-          font-weight: 500;
-          color: #333;
-        }
-      }
-    }
-  }
-
-  // Date Section
-  .date-section {
-    background: #f8f9fa;
-    border-top: 1px solid #e0e0e0;
-    padding: 12px 24px;
-
-    .date-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.85rem;
-      color: #666;
-
-      .date-label {
-        font-weight: 500;
-      }
-
-      .date-value {
-        color: #333;
-      }
-    }
-  }
-}
-
-// カードスタイル（クリーン&コンパクト）
-.diagnosis-content .card {
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  background: white;
-  overflow: hidden;
-  margin-bottom: 16px;
-
-  .card-header {
-    background: var(--primary-color, #3498db);
-    color: white;
-    padding: 12px 20px;
-    border-bottom: none;
-
-    h2, h3 {
-      margin: 0;
-      font-size: 1.1rem;
-      font-weight: 600;
-    }
-  }
-
-  .card-body {
-    padding: 20px;
-  }
-}
-
-// 情報グリッドをコンパクトに
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px;
-}
-
-.info-item {
-  background: #f8f9fa;
-  padding: 12px;
-  border-radius: 6px;
-  border-left: 3px solid var(--primary-color, #3498db);
-
-  label {
-    font-size: 11px;
-    font-weight: 600;
-    color: #666;
-    text-transform: uppercase;
-    margin-bottom: 4px;
-    display: block;
-  }
-
-  span {
-    font-size: 14px;
-    color: #333;
-    font-weight: 500;
-    display: block;
-  }
-}
-
-// セクションスタイルをコンパクトに
-.section {
-  margin-bottom: 20px;
-
-  h3 {
-    margin: 0 0 12px 0;
-    font-size: 1rem;
-    color: var(--primary-color, #3498db);
-    border-bottom: 2px solid var(--primary-color, #3498db);
-    padding-bottom: 6px;
-    font-weight: 600;
-  }
-}
-
-// 九星グリッドなどをコンパクトに
-.nine-star-grid, .zodiac-grid, .stroke-grid, .direction-grid, .special-info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 8px;
-}
-
-.star-item, .zodiac-item, .stroke-item, .direction-item, .special-info-item {
-  background: #f8f9fa;
-  padding: 10px;
-  border-radius: 6px;
-  text-align: center;
-  border-left: 3px solid var(--accent-color, #2980b9);
-
-  label {
-    display: block;
-    font-size: 10px;
-    font-weight: 600;
-    color: #666;
-    margin-bottom: 4px;
-    text-transform: uppercase;
-  }
-
-  span, .star-value {
-    font-size: 13px;
-    font-weight: 600;
-    color: #333;
-  }
-
-  .star-value {
-    color: var(--primary-color, #3498db);
-  }
-}
-
-// フッタースタイル
-.template-footer.modern-minimal {
-  margin-top: 32px;
-  border-top: 2px solid var(--primary-color, #3498db);
-  background: #f8f9fa;
-
-  .footer-content {
-    padding: 20px 24px;
-    text-align: center;
-  }
-
-  .footer-info {
-    margin-bottom: 16px;
-
-    .footer-business {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: var(--primary-color, #3498db);
-      margin-bottom: 4px;
-    }
-
-    .footer-operator {
-      font-size: 0.9rem;
-      color: #666;
-    }
-  }
-
-  .footer-disclaimer {
-    font-size: 0.8rem;
-    color: #999;
-    line-height: 1.4;
-    padding-top: 12px;
-    border-top: 1px solid #e0e0e0;
-  }
-}
+// テンプレート関連スタイル（共通CSSファイルにて定義）
 </style>
