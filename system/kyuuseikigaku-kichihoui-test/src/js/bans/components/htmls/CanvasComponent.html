@@ -1,0 +1,25 @@
+<div :class='backClass'>
+    <h5 class='ban_title'>
+        <div class='ban_husen'>{{ban}}</div>
+        <div class='ban_date' v-if='hosoku != ""'>
+            <span class='ban_date_current'>
+                {{title}}
+                <img :src='rosenImg' class='rosen' v-if='rosenImg != ""'>   
+            </span>
+            
+            <p class='ban_date_range'>
+                {{hosoku}}
+            </p>                        
+        </div>
+        <div class='ban_date' v-else>
+            <span class='ban_date_current' style='top:0.25em'>
+                {{title}}
+                <img :src='rosenImg' class='rosen' v-if='rosenImg != ""'> 
+            </span>
+        </div>
+    </h5>    
+    <svg :id='canvasId'></svg>
+    <div class='list_parent'>        
+        <a class='list_left' :href=gotoLink v-if='viewLink == true'>{{childBan}}</a>
+    </div>
+</div>

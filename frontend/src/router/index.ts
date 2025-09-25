@@ -41,12 +41,6 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
-    path: '/kantei/templates',
-    name: 'TemplateSettings',
-    component: () => import('@/views/TemplateSettingsView.vue'),
-    meta: { requiresAuth: true }
-  },
-  {
     path: '/kantei/design-patterns',
     name: 'DesignPatterns',
     component: () => import('@/views/DesignPatternsView.vue'),

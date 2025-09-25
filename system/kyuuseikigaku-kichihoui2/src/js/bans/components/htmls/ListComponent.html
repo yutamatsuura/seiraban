@@ -1,0 +1,18 @@
+<div>
+    <div class='block'>
+        <div  v-for='(c,i) of commons'>
+            <canvas-component :type=c :birth="birth" :current=current>
+            </canvas-component>
+        </div>
+    </div>
+    <h3 class='common_header'>{{title}}</h3>
+    <div class='block'>
+        <div v-for='(d,i) of dates'>
+            <canvas-component :type=type :birth="birth" :current=d>
+            </canvas-component>
+        </div>    
+    </div>
+    <!--
+    <option-component @changeOption="onChangeOption"></option-component>
+    -->
+</div>

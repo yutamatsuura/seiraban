@@ -1,0 +1,41 @@
+<div>
+    節入テスト
+    <table border='1'>
+        <tr>
+            <th>年</th>
+            <th>2月</th>
+            <th>3月</th>
+            <th>4月</th>
+            <th>5月</th>
+            <th>6月</th>
+            <th>7月</th>
+            <th>8月</th>
+            <th>9月</th>
+            <th>10月</th>
+            <th>11月</th>
+            <th>12月</th>
+            <th>13月</th>      
+            <th>土曜1</th>
+            <th>土曜2</th>
+            <th>土曜3</th>
+            <th>土曜4</th>      
+            <th>夏至</th>
+            <th>冬至</th>        
+        </tr>
+        <tr v-for='date in dates'>
+            <td>{{date.year}}</td>
+            <td v-for='beginMonth in date.getMonthBegins()'>
+                {{toDM(beginMonth)}}
+            </td>
+            <td v-for='i of 4'>
+                {{toDM(getDoyou(date.year,i - 1))}}
+            </td>
+            <td>
+                {{toDM(date.getGeshi())}}                  
+            </td>             
+            <td>
+                {{toDM(date.getTouji())}}                   
+            </td>  
+        </tr>        
+    </table>
+</div>

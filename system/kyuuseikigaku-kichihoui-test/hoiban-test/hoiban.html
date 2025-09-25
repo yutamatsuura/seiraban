@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>九星気学方位盤</title>
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .hoiban-container {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+
+        .hoiban {
+            position: relative;
+            width: 350px;
+            height: 350px;
+            margin: 20px auto;
+        }
+
+        .octagon {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform: rotate(22.5deg);
+        }
+
+        .segment {
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            transform-origin: 100% 100%;
+            overflow: hidden;
+            border: 2px solid #333;
+        }
+
+        .segment-content {
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            transform: rotate(-22.5deg);
+            transform-origin: 0 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 11px;
+            font-weight: bold;
+            text-align: center;
+            padding: 5px;
+            box-sizing: border-box;
+        }
+
+        .qsei-number {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+
+        .direction-name {
+            font-size: 10px;
+            margin-bottom: 3px;
+            color: #666;
+        }
+
+        .kipou-list {
+            font-size: 8px;
+            line-height: 1.2;
+        }
+
+        /* 方位別の位置設定 */
+        .north { transform: rotate(0deg); top: 0; left: 50%; margin-left: -25%; }
+        .northeast { transform: rotate(45deg); top: 14.6%; right: 14.6%; }
+        .east { transform: rotate(90deg); top: 50%; right: 0; margin-top: -25%; }
+        .southeast { transform: rotate(135deg); bottom: 14.6%; right: 14.6%; }
+        .south { transform: rotate(180deg); bottom: 0; left: 50%; margin-left: -25%; }
+        .southwest { transform: rotate(225deg); bottom: 14.6%; left: 14.6%; }
+        .west { transform: rotate(270deg); top: 50%; left: 0; margin-top: -25%; }
+        .northwest { transform: rotate(315deg); top: 14.6%; left: 14.6%; }
+
+        .center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid #333;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            font-weight: bold;
+            z-index: 10;
+        }
+
+        /* 吉凶による色分け */
+        .kichi { background-color: #ffcccb; }  /* 薄い赤 */
+        .kyou { background-color: #d3d3d3; }   /* グレー */
+        .saidai { background-color: #ff6b6b; } /* 濃い赤 */
+        .normal { background-color: #f0f0f0; } /* 薄いグレー */
+
+        .ban-title {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .legend {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 12px;
+        }
+
+        .meta-info {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>九星気学方位盤</h1>
+            <div class="meta-info">
+                <div>生年月日: 1982年10月12日男性</div>
+                <div>鑑定日: 2025年9月24日（現在）</div>
+                <div>本命星: 九紫火星 | 月命星: 六白金星</div>
+            </div>
+        </div>
+
+        <div class="hoiban-container">
+            <div>
+                <div class="ban-title">年盤（2025年）</div>
+                <div class="hoiban" id="yearBan"></div>
+                <div class="legend">○:吉方 ×:凶方 △:混在</div>
+            </div>
+
+            <div>
+                <div class="ban-title">月盤（9月）</div>
+                <div class="hoiban" id="monthBan"></div>
+                <div class="legend">○:吉方 ×:凶方 △:混在</div>
+            </div>
+
+            <div>
+                <div class="ban-title">日盤（24日）</div>
+                <div class="hoiban" id="dayBan"></div>
+                <div class="legend">○:吉方 ×:凶方 △:混在</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="hoiban.js"></script>
+    <script>
+        // データ生成
+        const calculator = new HoibanCalculator();
+        const birthData = calculator.generateHoiban(1982, 10, 12);
+        const currentData = calculator.generateHoibanForPerson(2025, 9, 24,
+            birthData.meta.yearQsei.index, birthData.meta.monthQsei.index);
+
+        // 方位名マッピング
+        const directionNames = ["北", "東北", "東", "東南", "南", "西南", "西", "西北"];
+        const directionClasses = ["north", "northeast", "east", "southeast", "south", "southwest", "west", "northwest"];
+
+        function getKipouClass(kipous) {
+            if (!kipous || kipous.length === 0) return 'normal';
+
+            const hasKyou = kipous.some(k => k.type === '凶');
+            const hasKichi = kipous.some(k => k.type === '吉');
+            const hasSaidai = kipous.some(k => k.name === '最大吉方');
+
+            if (hasSaidai) return 'saidai';
+            if (hasKyou && hasKichi) return 'normal';
+            if (hasKichi) return 'kichi';
+            if (hasKyou) return 'kyou';
+            return 'normal';
+        }
+
+        function getKipouMark(kipous) {
+            if (!kipous || kipous.length === 0) return '';
+
+            const hasKyou = kipous.some(k => k.type === '凶');
+            const hasKichi = kipous.some(k => k.type === '吉');
+
+            if (hasKyou && hasKichi) return '△';
+            if (hasKyou) return '×';
+            if (hasKichi) return '○';
+            return '';
+        }
+
+        function createHoiban(containerId, banData) {
+            const container = document.getElementById(containerId);
+            const octagon = document.createElement('div');
+            octagon.className = 'octagon';
+
+            // 8方位のセグメント作成
+            for (let i = 0; i < 8; i++) {
+                const segment = document.createElement('div');
+                segment.className = `segment ${directionClasses[i]}`;
+
+                const content = document.createElement('div');
+                content.className = 'segment-content';
+
+                const kipous = banData.detailedKipous[i] || [];
+                const kipouClass = getKipouClass(kipous);
+                content.classList.add(kipouClass);
+
+                const qseiNumber = document.createElement('div');
+                qseiNumber.className = 'qsei-number';
+                qseiNumber.textContent = banData.kiban[i];
+
+                const mark = document.createElement('span');
+                mark.textContent = getKipouMark(kipous);
+                qseiNumber.appendChild(mark);
+
+                const directionName = document.createElement('div');
+                directionName.className = 'direction-name';
+                directionName.textContent = directionNames[i];
+
+                const kipouList = document.createElement('div');
+                kipouList.className = 'kipou-list';
+                if (kipous.length > 0) {
+                    const names = kipous.map(k => k.name.substring(0, 2)).slice(0, 3);
+                    kipouList.textContent = names.join(',');
+                    if (kipous.length > 3) {
+                        kipouList.textContent += '...';
+                    }
+                }
+
+                content.appendChild(qseiNumber);
+                content.appendChild(directionName);
+                content.appendChild(kipouList);
+                segment.appendChild(content);
+                octagon.appendChild(segment);
+            }
+
+            // 中央
+            const center = document.createElement('div');
+            center.className = 'center';
+            center.innerHTML = `
+                <div style="font-size: 24px;">${banData.center}</div>
+                <div style="font-size: 12px;">中央</div>
+            `;
+
+            container.appendChild(octagon);
+            container.appendChild(center);
+        }
+
+        // 方位盤を描画
+        createHoiban('yearBan', currentData.yearBan);
+        createHoiban('monthBan', currentData.monthBan);
+        createHoiban('dayBan', currentData.dayBan);
+    </script>
+</body>
+</html>

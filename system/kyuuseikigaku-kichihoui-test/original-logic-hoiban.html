@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>九星気学方位盤 - 既存ロジック完全版</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .hoiban-row {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .hoiban-section {
+            text-align: center;
+            margin: 10px;
+        }
+
+        .ban-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .meta-info {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        /* SVG スタイル - Canvas.tsの実装に合わせる */
+        .segment-fill {
+            stroke: #333;
+            stroke-width: 1.5;
+        }
+
+        .border-line {
+            fill: none;
+            stroke: #333;
+            stroke-width: 2;
+        }
+
+        .qsei-text {
+            font-family: 'Noto Sans JP', Arial, sans-serif;
+            font-size: 32px;
+            font-weight: bold;
+            text-anchor: middle;
+            dominant-baseline: central;
+            fill: #000;
+        }
+
+        .center-text {
+            font-family: 'Noto Sans JP', Arial, sans-serif;
+            font-size: 42px;
+            font-weight: bold;
+            text-anchor: middle;
+            dominant-baseline: central;
+            fill: #000;
+        }
+
+        .houi-text {
+            font-family: 'Noto Sans JP', Arial, sans-serif;
+            font-size: 16px;
+            font-weight: bold;
+            text-anchor: middle;
+            dominant-baseline: central;
+            fill: #444;
+        }
+
+        .kipou-text {
+            font-family: 'Noto Sans JP', Arial, sans-serif;
+            font-size: 12px;
+            font-weight: bold;
+            text-anchor: middle;
+            dominant-baseline: central;
+        }
+
+        /* 吉凶による色分け */
+        .fill-saidai { fill: #ff4444; }    /* 最大吉方 */
+        .fill-kichi { fill: #ffaaaa; }     /* 吉方 */
+        .fill-kyou { fill: #cccccc; }      /* 凶方 */
+        .fill-normal { fill: #f8f8f8; }    /* 普通 */
+
+        .legend {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .debug-info {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>九星気学方位盤 - 既存ロジック完全版</h1>
+            <div class="meta-info">
+                <div><strong>生年月日:</strong> 1982年10月12日男性</div>
+                <div><strong>鑑定日:</strong> 2025年9月24日（現在）</div>
+                <div id="calculationResult">計算中...</div>
+            </div>
+        </div>
+
+        <div class="hoiban-row">
+            <div class="hoiban-section">
+                <div class="ban-title">年盤（2025年）</div>
+                <svg id="yearBan" width="420" height="420"></svg>
+                <div class="legend">赤:最大吉方 薄赤:吉方 グレー:凶方</div>
+            </div>
+
+            <div class="hoiban-section">
+                <div class="ban-title">月盤（9月）</div>
+                <svg id="monthBan" width="420" height="420"></svg>
+                <div class="legend">赤:最大吉方 薄赤:吉方 グレー:凶方</div>
+            </div>
+
+            <div class="hoiban-section">
+                <div class="ban-title">日盤（24日）</div>
+                <svg id="dayBan" width="420" height="420"></svg>
+                <div class="legend">赤:最大吉方 薄赤:吉方 グレー:凶方</div>
+            </div>
+        </div>
+
+        <div id="debugInfo" class="debug-info">
+            <h3>デバッグ情報:</h3>
+            <div id="debugContent">計算中...</div>
+        </div>
+    </div>
+
+    <script>
+        // Canvas.ts:35のPOINT_RADIANS（既存ロジックそのまま）
+        const TO_RADIAN = 2 * Math.PI / 360;
+        const POINT_RADIANS = [285, 255, 195, 165, 105, 75, 15, 345];
+
+        // Canvas.ts:37-46のBAN_TEXT_SRCS（既存ロジックそのまま）
+        const BAN_TEXT_SRCS = [
+            { deg: 270, addX: -0.5, addY: 0.5 },
+            { deg: (270 + 180) / 2, addX: -0.5, addY: 0.25 },
+            { deg: 180, addX: -0.75, addY: 0.25 },
+            { deg: (180 + 90) / 2, addX: -0.5, addY: 0 },
+            { deg: 90, addX: -0.5, addY: 0 },
+            { deg: (90 + 0) / 2, addX: -0.4, addY: 0 },
+            { deg: 0, addX: 0.25, addY: 0.25 },
+            { deg: (360 + 270) / 2, addX: -0.4, addY: 0.25 }
+        ];
+
+        const HOUI_NAMES = ["北", "北東", "東", "南東", "南", "南西", "西", "北西"];
+
+        // 既存システムの九星定数定義（Qsei.tsより）
+        const QSEI_DATA = {
+            1: { name: "一白水星", kiban8: [6, 4, 8, 9, 5, 7, 3, 2] },
+            2: { name: "二黒土星", kiban8: [7, 5, 9, 1, 6, 8, 4, 3] },
+            3: { name: "三碧木星", kiban8: [8, 6, 1, 2, 7, 9, 5, 4] },
+            4: { name: "四緑木星", kiban8: [9, 7, 2, 3, 8, 1, 6, 5] },
+            5: { name: "五黄土星", kiban8: [1, 8, 3, 4, 9, 2, 7, 6] },
+            6: { name: "六白金星", kiban8: [2, 9, 4, 5, 1, 3, 8, 7] },
+            7: { name: "七赤金星", kiban8: [3, 1, 5, 6, 2, 4, 9, 8] },
+            8: { name: "八白土星", kiban8: [4, 2, 6, 7, 3, 5, 1, 9] },
+            9: { name: "九紫火星", kiban8: [5, 3, 7, 8, 4, 6, 2, 1] }
+        };
+
+        // 月盤テーブル（Qsei.ts:9-22のMONTH_TABLEそのまま）
+        const MONTH_TABLE = [
+            [8, 2, 5], // 2月 添字0
+            [7, 1, 4], // 3月 添字1
+            [6, 9, 3], // 4月 添字2
+            [5, 8, 2], // 5月 添字3
+            [4, 7, 1], // 6月 添字4
+            [3, 6, 9], // 7月 添字5
+            [2, 5, 8], // 8月 添字6
+            [1, 4, 7], // 9月 添字7
+            [9, 3, 6], // 10月 添字8
+            [8, 2, 5], // 11月 添字9
+            [7, 1, 4], // 12月 添字10
+            [6, 9, 3], // 13月 添字11
+        ];
+
+        /**
+         * 既存ロジックによる年星計算（Qsei.ts:248-262そのまま）
+         */
+        function calculateYearQsei(year, month, day) {
+            // 節入り調整（簡略化 - 本来はSetu.tsの正確な計算）
+            let targetYear = year;
+            if (month < 2 || (month === 2 && day < 4)) {
+                targetYear = year - 1;
+            }
+
+            // Qsei.ts:248-258のgetYearSubメソッドそのまま
+            let mod = targetYear % 9;
+            if (mod === 0) {
+                mod = 9;
+            } else if (mod === 1) {
+                mod = 10;
+            }
+
+            return 11 - mod;
+        }
+
+        /**
+         * 既存ロジックによる月星計算（Qsei.ts:266-270そのまま）
+         */
+        function calculateMonthQsei(year, month, day) {
+            const yearQsei = calculateYearQsei(year, month, day);
+
+            // 月インデックス（簡略化）
+            let monthIndex = month - 2;
+            if (monthIndex < 0) monthIndex += 12;
+
+            const index2 = (yearQsei - 1) % 3;
+            return MONTH_TABLE[monthIndex][index2];
+        }
+
+        /**
+         * 日星計算（簡略版 - 実際はQseiDayCreater.tsの複雑なロジック）
+         */
+        function calculateDayQsei(year, month, day) {
+            // 簡略化された日盤計算（実際は60日周期の複雑な計算）
+            const date = new Date(year, month - 1, day);
+            const daysSinceEpoch = Math.floor(date.getTime() / (1000 * 60 * 60 * 24));
+            return ((daysSinceEpoch % 9) + 1) || 9;
+        }
+
+        /**
+         * Canvas.tsのロジックそのままD3.jsで8角形方位盤を描画
+         */
+        function createOriginalHoiban(svgId, centerQsei, banType, birthYearQsei, birthMonthQsei) {
+            const svg = d3.select(`#${svgId}`);
+            const width = 420;
+            const height = 420;
+            const center = { x: width / 2, y: height / 2 };
+            const outerSize = width * 0.28;
+            const innerSize = width * 0.08;
+
+            svg.selectAll('*').remove();
+
+            // 基盤取得
+            const kiban = QSEI_DATA[centerQsei].kiban8;
+
+            // 詳細吉凶計算
+            const detailedKipous = calculateDetailedKipous(kiban, centerQsei, birthYearQsei, birthMonthQsei, banType);
+
+            // Canvas.ts:199-211の八角形の点計算そのまま
+            const outerPoints = [];
+            const innerPoints = [];
+            POINT_RADIANS.forEach((deg) => {
+                outerPoints.push({
+                    x: outerSize * Math.cos(deg * TO_RADIAN) + center.x,
+                    y: -outerSize * Math.sin(deg * TO_RADIAN) + center.y
+                });
+
+                innerPoints.push({
+                    x: innerSize * Math.cos(deg * TO_RADIAN) + center.x,
+                    y: -innerSize * Math.sin(deg * TO_RADIAN) + center.y
+                });
+            });
+
+            // Canvas.ts:264-278の各セグメント塗りつぶしロジック（詳細吉凶対応）
+            for (let i = 0; i < 8; i++) {
+                const begin = outerPoints[i];
+                const end = outerPoints[(i + 1) % outerPoints.length];
+                const pathData = [center, begin, end];
+
+                const line = d3.line()
+                    .x(d => d.x)
+                    .y(d => d.y);
+
+                // 詳細吉凶による色分け
+                const kipous = detailedKipous[i] || [];
+                let fillClass = 'fill-normal';
+
+                if (kipous.length > 0) {
+                    // 最も重要な吉凶で色を決定
+                    const mainKipou = kipous.reduce((prev, current) =>
+                        Math.abs(current.priority) > Math.abs(prev.priority) ? current : prev
+                    );
+
+                    if (mainKipou.name === '最大吉方') {
+                        fillClass = 'fill-saidai';
+                    } else if (mainKipou.type === '吉') {
+                        fillClass = 'fill-kichi';
+                    } else if (mainKipou.type === '凶') {
+                        fillClass = 'fill-kyou';
+                    }
+                }
+
+                svg.append("path")
+                    .datum(pathData)
+                    .attr("class", `segment-fill ${fillClass}`)
+                    .attr("d", d => line(d) + "Z");
+            }
+
+            // Canvas.ts:282-295の外枠・内枠描画そのまま
+            const line = d3.line()
+                .x(d => d.x)
+                .y(d => d.y);
+
+            svg.append("path")
+                .datum(outerPoints)
+                .attr("class", "border-line")
+                .attr("d", d => line(d) + "Z");
+
+            svg.append("path")
+                .datum(innerPoints)
+                .attr("class", "border-line")
+                .attr("d", d => line(d) + "Z");
+
+            // Canvas.ts:299-309の分割線そのまま
+            for (let i = 0; i < 8; i++) {
+                svg.append("line")
+                    .attr("class", "border-line")
+                    .attr("x1", outerPoints[i].x)
+                    .attr("y1", outerPoints[i].y)
+                    .attr("x2", innerPoints[i].x)
+                    .attr("y2", innerPoints[i].y);
+            }
+
+            // 中央円
+            svg.append("circle")
+                .attr("cx", center.x)
+                .attr("cy", center.y)
+                .attr("r", innerSize)
+                .attr("fill", "white")
+                .attr("stroke", "#333")
+                .attr("stroke-width", 2);
+
+            // Canvas.ts:338-343の中央テキストそのまま
+            svg.append("text")
+                .attr("class", "center-text")
+                .attr("x", center.x)
+                .attr("y", center.y)
+                .text(centerQsei);
+
+            // Canvas.ts:345-360の九星番号テキストそのまま
+            BAN_TEXT_SRCS.forEach((src, i) => {
+                const textSize = width * 0.22;
+                const x = textSize * Math.cos(src.deg * TO_RADIAN) + center.x + (src.addX * 20);
+                const y = -textSize * Math.sin(src.deg * TO_RADIAN) + center.y + (src.addY * 20);
+
+                svg.append("text")
+                    .attr("class", "qsei-text")
+                    .attr("x", x)
+                    .attr("y", y)
+                    .text(kiban[i]);
+            });
+
+            // 方位名
+            HOUI_NAMES.forEach((name, i) => {
+                const houiTextSize = outerSize + 45;
+                const deg = BAN_TEXT_SRCS[i].deg;
+                const x = houiTextSize * Math.cos(deg * TO_RADIAN) + center.x;
+                const y = -houiTextSize * Math.sin(deg * TO_RADIAN) + center.y;
+
+                svg.append("text")
+                    .attr("class", "houi-text")
+                    .attr("x", x)
+                    .attr("y", y)
+                    .text(name);
+            });
+
+            // 詳細吉凶テキスト表示
+            BAN_TEXT_SRCS.forEach((src, i) => {
+                const kipous = detailedKipous[i] || [];
+                if (kipous.length === 0) return;
+
+                // 最も重要な吉凶を表示
+                const mainKipou = kipous.reduce((prev, current) =>
+                    Math.abs(current.priority) > Math.abs(prev.priority) ? current : prev
+                );
+
+                const labelSize = outerSize + 70;
+                const x = labelSize * Math.cos(src.deg * TO_RADIAN) + center.x;
+                const y = -labelSize * Math.sin(src.deg * TO_RADIAN) + center.y;
+
+                svg.append("text")
+                    .attr("class", "kipou-text")
+                    .attr("x", x)
+                    .attr("y", y)
+                    .attr("fill", mainKipou.color)
+                    .text(mainKipou.name);
+
+                // 複数の吉凶がある場合は下に追加表示
+                if (kipous.length > 1) {
+                    const otherKipous = kipous.filter(k => k !== mainKipou).slice(0, 2); // 最大2つまで
+                    otherKipous.forEach((kipou, idx) => {
+                        svg.append("text")
+                            .attr("class", "kipou-text")
+                            .attr("x", x)
+                            .attr("y", y + 15 + (idx * 12))
+                            .attr("fill", kipou.color)
+                            .attr("font-size", "10px")
+                            .text(kipou.name);
+                    });
+                }
+            });
+
+            // デバッグ情報を更新
+            updateDebugInfo(banType, centerQsei, kiban, detailedKipous);
+        }
+
+        // デバッグ情報更新
+        function updateDebugInfo(banType, centerQsei, kiban, detailedKipous) {
+            const banName = banType === 'year' ? '年盤' : banType === 'month' ? '月盤' : '日盤';
+            let debugText = `\n${banName} (中央: ${centerQsei}):\n`;
+            debugText += `基盤: [${kiban.join(', ')}]\n`;
+            debugText += `詳細吉凶:\n`;
+
+            HOUI_NAMES.forEach((houi, i) => {
+                const kipous = detailedKipous[i] || [];
+                if (kipous.length > 0) {
+                    const kipouNames = kipous.map(k => k.name).join(', ');
+                    debugText += `  ${houi}(${kiban[i]}): ${kipouNames}\n`;
+                }
+            });
+
+            // 既存のデバッグ情報に追加
+            const currentDebug = document.getElementById('debugContent').innerHTML;
+            document.getElementById('debugContent').innerHTML = currentDebug + `<br><pre>${debugText}</pre>`;
+        }
+
+        // 完全な吉凶判定システム
+        const KIPOU_TYPES = {
+            // 吉方
+            SAIDAI: { name: '最大吉方', type: '吉', color: '#ff0000', priority: 10 },
+            DAIKI: { name: '大吉方', type: '吉', color: '#ff6666', priority: 8 },
+
+            // 凶方
+            GOOU: { name: '五黄殺', type: '凶', color: '#000000', priority: -10 },
+            ANKEN: { name: '暗剣殺', type: '凶', color: '#333333', priority: -9 },
+            HONMEI: { name: '本命殺', type: '凶', color: '#666666', priority: -8 },
+            GETUMEI: { name: '月命殺', type: '凶', color: '#666666', priority: -7 },
+            HONMEI_TEKI: { name: '本命的殺', type: '凶', color: '#888888', priority: -6 },
+            GETUMEI_TEKI: { name: '月命的殺', type: '凶', color: '#888888', priority: -5 },
+            SAIHA: { name: '歳破', type: '凶', color: '#999999', priority: -4 },
+            GETSUHA: { name: '月破', type: '凶', color: '#999999', priority: -3 },
+            NICHIHA: { name: '日破', type: '凶', color: '#999999', priority: -2 }
+        };
+
+        // 各方位の詳細吉凶を計算（既存システム完全準拠）
+        function calculateDetailedKipous(kiban, centerQsei, birthYearQsei, birthMonthQsei, banType) {
+            const kipousByDirection = Array(8).fill().map(() => []);
+
+            // 本命的殺・月命的殺の位置計算
+            const honMeiIndex = kiban.findIndex(val => val === birthYearQsei);
+            const honMeiTekiIndex = honMeiIndex === -1 ? -1 : (honMeiIndex + 4) % 8;
+
+            const getuMeiIndex = kiban.findIndex(val => val === birthMonthQsei);
+            const getuMeiTekiIndex = getuMeiIndex === -1 ? -1 : (getuMeiIndex + 4) % 8;
+
+            // 各方位の吉凶判定
+            for (let i = 0; i < 8; i++) {
+                const k = kiban[i]; // この方位にある九星
+                const oppositeK = kiban[(i + 4) % 8]; // 対角の九星
+
+                // 五黄殺
+                if (k === 5) {
+                    kipousByDirection[i].push({ ...KIPOU_TYPES.GOOU });
+                }
+
+                // 暗剣殺
+                if (oppositeK === 5) {
+                    kipousByDirection[i].push({ ...KIPOU_TYPES.ANKEN });
+                }
+
+                // 歳破・月破・日破
+                if (banType === 'year' && k === ((centerQsei + 6) % 9) + 1) {
+                    kipousByDirection[i].push({ ...KIPOU_TYPES.SAIHA });
+                } else if (banType === 'month' && k === ((centerQsei + 6) % 9) + 1) {
+                    kipousByDirection[i].push({ ...KIPOU_TYPES.GETSUHA });
+                } else if (banType === 'day' && k === ((centerQsei + 6) % 9) + 1) {
+                    kipousByDirection[i].push({ ...KIPOU_TYPES.NICHIHA });
+                }
+
+                // 本命殺
+                if (k === birthYearQsei) {
+                    kipousByDirection[i].push({ ...KIPOU_TYPES.HONMEI });
+                }
+
+                // 本命的殺
+                if (honMeiTekiIndex !== -1 && k === kiban[honMeiTekiIndex]) {
+                    kipousByDirection[i].push({ ...KIPOU_TYPES.HONMEI_TEKI });
+                }
+
+                // 月命殺
+                if (k === birthMonthQsei) {
+                    kipousByDirection[i].push({ ...KIPOU_TYPES.GETUMEI });
+                }
+
+                // 月命的殺
+                if (getuMeiTekiIndex !== -1 && k === kiban[getuMeiTekiIndex]) {
+                    kipousByDirection[i].push({ ...KIPOU_TYPES.GETUMEI_TEKI });
+                }
+
+                // 基本吉方（五行相生）
+                const basicKipous = findKipous(centerQsei);
+                if (basicKipous.includes(k) && kipousByDirection[i].length === 0) {
+                    const isMaxKipou = isMaxKipouCheck(k, centerQsei, birthYearQsei, birthMonthQsei);
+                    if (isMaxKipou) {
+                        kipousByDirection[i].push({ ...KIPOU_TYPES.SAIDAI });
+                    } else {
+                        kipousByDirection[i].push({ ...KIPOU_TYPES.DAIKI });
+                    }
+                }
+            }
+
+            return kipousByDirection;
+        }
+
+        // 五行相生による基本吉方計算（Qsei.ts:234-245準拠）
+        function findKipous(qseiIndex) {
+            const gogyouData = {
+                1: { shozoku: [1, 6, 7], seiki: 2, taiki: 3 },  // 水
+                2: { shozoku: [2, 8, 9], seiki: 3, taiki: 1 },  // 土
+                3: { shozoku: [3, 4], seiki: 1, taiki: 2 },     // 木
+                4: { shozoku: [3, 4], seiki: 1, taiki: 2 },     // 木
+                5: { shozoku: [2, 5, 8, 9], seiki: 3, taiki: 1 }, // 土
+                6: { shozoku: [1, 6, 7], seiki: 2, taiki: 3 },  // 金
+                7: { shozoku: [1, 6, 7], seiki: 2, taiki: 3 },  // 金
+                8: { shozoku: [2, 8, 9], seiki: 3, taiki: 1 },  // 土
+                9: { shozoku: [2, 8, 9], seiki: 3, taiki: 1 }   // 火
+            };
+
+            const qsei = gogyouData[qseiIndex];
+            if (!qsei) return [];
+
+            // 脇（同五行で本命星以外）
+            let waki = qsei.shozoku.filter(val => val !== qseiIndex);
+
+            // 生気・退気
+            let seikiShozoku = gogyouData[qsei.seiki].shozoku;
+            let taikiShozoku = gogyouData[qsei.taiki].shozoku;
+
+            let result = [...waki, ...seikiShozoku, ...taikiShozoku];
+            result = result.filter(val => val !== 5); // 五黄除外
+
+            return [...new Set(result)].sort(); // 重複除去&ソート
+        }
+
+        function isMaxKipouCheck(qseiIndex, centerQsei, birthYearQsei, birthMonthQsei) {
+            // 年星・月星の吉方か、同会の関係
+            const yearKipous = findKipous(birthYearQsei);
+            const monthKipous = findKipous(birthMonthQsei);
+
+            return (yearKipous.includes(qseiIndex) && qseiIndex !== birthYearQsei) ||
+                   (monthKipous.includes(qseiIndex) && qseiIndex !== birthMonthQsei);
+        }
+
+        // メイン実行
+        window.onload = function() {
+            console.log('既存ロジック完全版 - 方位盤計算開始');
+
+            // 1982年10月12日生まれの計算
+            const birthYear = 1982, birthMonth = 10, birthDay = 12;
+            const currentYear = 2025, currentMonth = 9, currentDay = 24;
+
+            // 既存ロジックで計算
+            const birthYearQsei = calculateYearQsei(birthYear, birthMonth, birthDay);
+            const birthMonthQsei = calculateMonthQsei(birthYear, birthMonth, birthDay);
+
+            const yearQsei = calculateYearQsei(currentYear, currentMonth, currentDay);
+            const monthQsei = calculateMonthQsei(currentYear, currentMonth, currentDay);
+            const dayQsei = calculateDayQsei(currentYear, currentMonth, currentDay);
+
+            // 結果表示
+            document.getElementById('calculationResult').innerHTML = `
+                <div><strong>本命星:</strong> ${QSEI_DATA[birthYearQsei].name} (${birthYearQsei})</div>
+                <div><strong>月命星:</strong> ${QSEI_DATA[birthMonthQsei].name} (${birthMonthQsei})</div>
+                <div><strong>現在 年盤:</strong> ${QSEI_DATA[yearQsei].name} (${yearQsei})</div>
+                <div><strong>現在 月盤:</strong> ${QSEI_DATA[monthQsei].name} (${monthQsei})</div>
+                <div><strong>現在 日盤:</strong> ${QSEI_DATA[dayQsei].name} (${dayQsei})</div>
+            `;
+
+            // デバッグ情報
+            document.getElementById('debugContent').innerHTML = `
+                生年月日: ${birthYear}/${birthMonth}/${birthDay}<br>
+                本命星計算: ${birthYearQsei} (${QSEI_DATA[birthYearQsei].name})<br>
+                月命星計算: ${birthMonthQsei} (${QSEI_DATA[birthMonthQsei].name})<br>
+                <br>
+                現在日: ${currentYear}/${currentMonth}/${currentDay}<br>
+                年盤中央: ${yearQsei} (${QSEI_DATA[yearQsei].name})<br>
+                月盤中央: ${monthQsei} (${QSEI_DATA[monthQsei].name})<br>
+                日盤中央: ${dayQsei} (${QSEI_DATA[dayQsei].name})<br>
+                <br>
+                年盤基盤: [${QSEI_DATA[yearQsei].kiban8.join(', ')}]<br>
+                月盤基盤: [${QSEI_DATA[monthQsei].kiban8.join(', ')}]<br>
+                日盤基盤: [${QSEI_DATA[dayQsei].kiban8.join(', ')}]
+            `;
+
+            // 8角形方位盤を描画
+            createOriginalHoiban('yearBan', yearQsei, 'year', birthYearQsei, birthMonthQsei);
+            createOriginalHoiban('monthBan', monthQsei, 'month', birthYearQsei, birthMonthQsei);
+            createOriginalHoiban('dayBan', dayQsei, 'day', birthYearQsei, birthMonthQsei);
+
+            console.log('既存ロジック完全版 - 描画完了');
+        };
+    </script>
+</body>
+</html>

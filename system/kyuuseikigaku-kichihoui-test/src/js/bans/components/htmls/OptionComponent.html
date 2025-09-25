@@ -1,0 +1,46 @@
+<fieldset>
+    <legend>オプション</legend>
+    <span v-for='(item,index) in checkOptions'>
+        <span>
+            {{item.jp}}
+        </span>
+        <input type='checkbox' v-model='item.checked' @change='onCheckChange(index)'>
+    </span>
+    <a href='javascript:void(0);' @click='openDetail'>詳細設定</a>
+    <button @click='initOption'>設定初期化</button>
+    <fieldset id='option_detail' class='display_none'>
+        <legend>盤面の色を設定</legend>
+        <table border='1'>
+            <tr v-for='(item,index) in selectOptions'>
+                <td>
+                    <span class='kipou' v-if='item.kipou == true'>{{item.jp}}</span>
+                    <span class='kyou' v-if='item.kipou == false'>{{item.jp}}</span>
+                </td>
+                <td>
+                    <label :for='item.checkedId'>有効</label>
+                    <input :id='item.checkedId' type='checkbox' v-model='item.checked' @change='onChangeEnabled(index)'>
+                </td>
+                <td>
+                    <label :for='item.id'>盤面</label>
+                    <select :id='item.id' v-model='item.value' v-on:change=onChangeSelect(index)
+                        v-if='item.kipou == true'>
+                        <option v-bind:value=KIPOU_SELECTS[0]>濃く塗る</option>
+                        <option v-bind:value=KIPOU_SELECTS[1]>薄く塗る</option>
+                        <option v-bind:value=KIPOU_SELECTS[2]>塗らない</option>
+                    </select>
+                    <select :id='item.id' v-model='item.value' v-on:change=onChangeSelect(index)
+                        v-if='item.kipou == false'>
+                        <option v-bind:value=KYOU_SELECTS[0]>濃く塗る</option>
+                        <option v-bind:value=KYOU_SELECTS[1]>薄く塗る</option>
+                        <option v-bind:value=KYOU_SELECTS[2]>塗らない</option>
+                    </select>
+                </td>
+            </tr>
+        </table>
+        <ul>
+            <li>基本的に吉方位よりも凶方位の色が優先されます。</li>    
+            <li>凶方位が塗らない、かつ吉方位が塗るの場合は吉方位の色が優先されます。</li>            
+            <li>文字列の色が盤面と異なった場合、文字列は削除（もしくは取り消し線表示）されます。</li>            
+        </ul>
+    </fieldset>
+</fieldset>

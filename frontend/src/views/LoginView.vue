@@ -58,6 +58,33 @@
           />
         </div>
 
+        <!-- 認証情報入力ボタン -->
+        <div class="credential-buttons">
+          <button
+            type="button"
+            @click="fillAdminCredentials"
+            class="admin-fill-button"
+            :disabled="loading"
+          >
+            <svg class="button-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-1 6h2v2h-2V7zm0 4h2v6h-2v-6z"/>
+            </svg>
+            管理者認証情報を入力
+          </button>
+
+          <button
+            type="button"
+            @click="fillUserCredentials"
+            class="user-fill-button"
+            :disabled="loading"
+          >
+            <svg class="button-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+            </svg>
+            一般ユーザー認証情報を入力
+          </button>
+        </div>
+
         <button
           type="submit"
           class="login-button"
@@ -104,6 +131,18 @@ const successMessage = ref('')
 const isFormValid = computed(() => {
   return form.value.email.trim() !== '' && form.value.password.trim() !== ''
 })
+
+// 管理者認証情報入力
+const fillAdminCredentials = () => {
+  form.value.email = 'matsuura.yuta@gmail.com'
+  form.value.password = 'ia0110299'
+}
+
+// 一般ユーザー認証情報入力
+const fillUserCredentials = () => {
+  form.value.email = 'matsuura.yuta02@gmail.com'
+  form.value.password = 'ia0110299'
+}
 
 // ログイン処理
 const handleLogin = async () => {
@@ -249,6 +288,75 @@ const handleLogin = async () => {
       cursor: not-allowed;
       opacity: 0.7;
     }
+  }
+}
+
+.credential-buttons {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+.admin-fill-button,
+.user-fill-button {
+  flex: 1;
+  padding: 12px 16px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  font-family: inherit;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .button-icon {
+    margin-right: 6px;
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    background: #bdc3c7 !important;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  @media (max-width: 600px) {
+    font-size: 0.875rem;
+  }
+}
+
+.admin-fill-button {
+  background: linear-gradient(135deg, #16a085 0%, #138d75 100%);
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(22, 160, 133, 0.25);
+  }
+}
+
+.user-fill-button {
+  background: linear-gradient(135deg, #f39c12 0%, #d68910 100%);
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(243, 156, 18, 0.25);
   }
 }
 

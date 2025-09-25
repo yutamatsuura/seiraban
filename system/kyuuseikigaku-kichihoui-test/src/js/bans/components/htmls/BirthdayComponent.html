@@ -1,0 +1,20 @@
+<div>
+    生年月日：{{birthday}} ({{age}}歳) 十二支：{{eto60.lastName}}({{eto60.name}})</td>
+    <div class='block'>
+        <div>
+            <canvas-component id='year' type='year' :birth="birth" :current="birth" override-title="年命星"
+                override-hosoku="" view-link=false>
+            </canvas-component>
+        </div>
+        <div>
+            <canvas-component id='month' type='month' :birth="birth" :current="birth" override-title="月命星"
+                override-hosoku="" view-link=false>
+            </canvas-component>
+        </div>
+        <div>
+            <canvas-component id='day' type='day' :birth="birth" :current="birth" override-title="日命星"
+                override-hosoku="" view-link=false>
+            </canvas-component>
+        </div>
+    </div>
+</div>

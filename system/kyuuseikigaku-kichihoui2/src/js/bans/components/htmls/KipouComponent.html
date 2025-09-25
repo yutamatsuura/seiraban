@@ -1,0 +1,30 @@
+<div>
+    日付:{{current.date}}
+    <br/>
+    <button @click='openCalendar'>他の日を調べる</button>            
+    <div id='currentday_cal'></div>
+    <div class='block'>
+        <div>                                                                               
+            <canvas-component id='year' type='year' :birth="birth" :current="current">
+            </canvas-component>
+            <div class='arrow left' v-on:click=beforeYear></div>
+            <div class='arrow right' v-on:click=nextYear></div>
+            <a class='list_right' :href=gotoYearLink>年盤一覧へ</a>
+        </div>
+        <div>
+            <canvas-component id='month' type='month' :birth="birth" :current="current">
+            </canvas-component>
+            <div class='arrow left' v-on:click=beforeMonth></div>
+            <div class='arrow right' v-on:click=nextMonth></div>
+        </div>
+        <div>
+            <canvas-component id='day' type='day' :birth="birth" :current="current">
+            </canvas-component>
+            <div class='arrow left' v-on:click=beforeDay></div>
+            <div class='arrow right' v-on:click=nextDay></div>
+        </div>
+    </div>
+    <!--
+    <option-component></option-component>
+    -->
+</div>

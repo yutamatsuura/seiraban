@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>鑑定書統合デモ</title>
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .demo-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+        }
+        .demo-section h2 {
+            color: #007bff;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .input-group input, .input-group select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+        .btn-success {
+            background: #28a745;
+        }
+        .btn-success:hover {
+            background: #1e7e34;
+        }
+        #kanteiResult {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .loading {
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 12px;
+            overflow-x: auto;
+        }
+        .integration-examples {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        /* 鑑定書スタイル */
+        .kantei-hoiban-section {
+            font-family: 'Noto Sans JP', sans-serif;
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .hoiban-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .ban-item {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 15px;
+            background: #f9f9f9;
+        }
+        .birth-info, .overall-judgment {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .kipou-item {
+            display: inline-block;
+            padding: 4px 8px;
+            margin: 2px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        .kipou-item.good {
+            background: #d4edda;
+            color: #155724;
+        }
+        .kipou-item.bad {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 鑑定書統合システム デモ</h1>
+
+        <div class="demo-section">
+            <h2>📝 入力フォーム</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                <div class="input-group">
+                    <label for="year">生年</label>
+                    <input type="number" id="year" value="1982" min="1900" max="2100">
+                </div>
+                <div class="input-group">
+                    <label for="month">生月</label>
+                    <input type="number" id="month" value="10" min="1" max="12">
+                </div>
+                <div class="input-group">
+                    <label for="day">生日</label>
+                    <input type="number" id="day" value="12" min="1" max="31">
+                </div>
+                <div class="input-group">
+                    <label for="gender">性別</label>
+                    <select id="gender">
+                        <option value="male">男性</option>
+                        <option value="female">女性</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="btn" onclick="generateKantei()">
+                🔮 鑑定書データを生成
+            </button>
+            <button class="btn btn-success" onclick="exportToPdf()">
+                📄 PDF出力（プレビュー）
+            </button>
+        </div>
+
+        <div class="integration-examples">
+            <h3>🛠️ 組み込み例</h3>
+            <p><strong>サーバーサイド統合:</strong></p>
+            <div class="code-block">
+// Node.js / Express での使用例
+const KanteiIntegration = require('./kantei-integration.js');
+const integration = new KanteiIntegration();
+
+app.post('/api/generate-kantei', async (req, res) => {
+    const { year, month, day, gender } = req.body;
+    const data = await integration.fetchExistingSystemData(year, month, day, gender);
+    const html = integration.generateKanteiHTML(data);
+    res.json({ html, data });
+});
+            </div>
+
+            <p><strong>フロントエンド統合:</strong></p>
+            <div class="code-block">
+// React/Vue での使用例
+const integration = new KanteiSystemIntegration();
+const kanteiData = await integration.fetchExistingSystemData(1982, 10, 12, 'male');
+const htmlContent = integration.generateKanteiHTML(kanteiData);
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>📊 生成結果プレビュー</h2>
+            <div id="kanteiResult">
+                <div class="loading">生年月日を入力して「鑑定書データを生成」ボタンを押してください</div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>🔧 技術仕様</h2>
+            <ul>
+                <li><strong>データ取得:</strong> 既存システム(kigaku-navi.com)からプロキシ経由</li>
+                <li><strong>キャッシュ:</strong> 同一パラメータのリクエストを高速化</li>
+                <li><strong>出力形式:</strong> HTML/JSON/構造化データ</li>
+                <li><strong>PDF対応:</strong> CSS印刷メディア対応、Puppeteer等で変換可能</li>
+                <li><strong>環境:</strong> Node.js/ブラウザ両対応</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="kantei-integration.js"></script>
+    <script>
+        let integration;
+
+        // 初期化
+        window.onload = function() {
+            if (typeof KanteiSystemIntegration !== 'undefined') {
+                integration = new KanteiSystemIntegration();
+                console.log('鑑定書統合システムが初期化されました');
+            } else {
+                console.error('KanteiSystemIntegration が読み込まれていません');
+            }
+        };
+
+        async function generateKantei() {
+            const year = parseInt(document.getElementById('year').value);
+            const month = parseInt(document.getElementById('month').value);
+            const day = parseInt(document.getElementById('day').value);
+            const gender = document.getElementById('gender').value;
+
+            const resultDiv = document.getElementById('kanteiResult');
+            resultDiv.innerHTML = '<div class="loading">🔄 データを取得中...</div>';
+
+            try {
+                // デモ用の疑似データ生成（実際は既存システムから取得）
+                const mockData = generateMockData(year, month, day, gender);
+
+                // HTML生成
+                const html = integration.generateKanteiHTML(mockData);
+
+                // 結果表示
+                resultDiv.innerHTML = html;
+
+                // 成功メッセージ
+                const successMsg = document.createElement('div');
+                successMsg.className = 'success';
+                successMsg.innerHTML = '✅ 鑑定書データの生成が完了しました';
+                resultDiv.insertBefore(successMsg, resultDiv.firstChild);
+
+                console.log('生成されたデータ:', mockData);
+
+            } catch (error) {
+                console.error('エラー:', error);
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ エラーが発生しました: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        function generateMockData(year, month, day, gender) {
+            // 実際の統合では integration.fetchExistingSystemData() を使用
+            return {
+                birthInfo: {
+                    date: `${year}年${month}月${day}日 (${gender === 'male' ? '男性' : '女性'})`,
+                    yearQsei: '九紫火星',
+                    monthQsei: '六白金星',
+                    dayQsei: '七赤金星'
+                },
+                yearBan: {
+                    title: '年盤',
+                    period: '2025年 (2025/2/3～2026/2/3)',
+                    center: 3,
+                    kipous: [
+                        { type: '最大吉方', direction: '北東', level: 10 },
+                        { type: '吉方', direction: '南西', level: 8 }
+                    ]
+                },
+                monthBan: {
+                    title: '月盤',
+                    period: '9月 (9/7～10/7)',
+                    center: 6,
+                    kipous: [
+                        { type: '吉方', direction: '東', level: 8 },
+                        { type: '五黄殺', direction: '西', level: -10 }
+                    ]
+                },
+                dayBan: {
+                    title: '日盤',
+                    period: '24日',
+                    center: 7,
+                    kipous: [
+                        { type: '暗剣殺', direction: '南', level: -9 }
+                    ]
+                },
+                overallKipou: {
+                    summary: '吉方3方位、凶方2方位',
+                    goodDirections: ['北東', '南西', '東'],
+                    badDirections: ['西', '南'],
+                    recommendations: [
+                        '🌟 北東、南西、東方位への移動や活動がおすすめです',
+                        '⚠️ 西、南方位は避けることをお勧めします'
+                    ]
+                }
+            };
+        }
+
+        function exportToPdf() {
+            // PDF出力のプレビュー（実際はサーバーサイドで処理）
+            const content = document.getElementById('kanteiResult').innerHTML;
+
+            // 新しいウィンドウで印刷プレビュー
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>鑑定書プレビュー</title>
+                    <style>
+                        body { font-family: 'Noto Sans JP', sans-serif; margin: 20px; }
+                        .kantei-hoiban-section { border: 1px solid #ddd; padding: 20px; border-radius: 8px; }
+                        .hoiban-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0; }
+                        .ban-item { border: 1px solid #ccc; border-radius: 5px; padding: 15px; background: #f9f9f9; }
+                        .birth-info, .overall-judgment { background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0; }
+                        .kipou-item { display: inline-block; padding: 4px 8px; margin: 2px; border-radius: 3px; font-size: 12px; }
+                        .kipou-item.good { background: #d4edda; color: #155724; }
+                        .kipou-item.bad { background: #f8d7da; color: #721c24; }
+                        @media print { body { margin: 0; } }
+                    </style>
+                </head>
+                <body>
+                    ${content}
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.focus();
+        }
+    </script>
+</body>
+</html>

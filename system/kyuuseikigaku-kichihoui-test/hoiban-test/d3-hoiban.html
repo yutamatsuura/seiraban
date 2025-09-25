@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>九星気学方位盤 D3.js版</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .hoiban-row {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 40px;
+        }
+
+        .hoiban-section {
+            text-align: center;
+        }
+
+        .ban-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .meta-info {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        /* SVG スタイル */
+        .border {
+            fill: none;
+            stroke: #333;
+            stroke-width: 2;
+        }
+
+        .ban {
+            font-size: 24px;
+            font-weight: bold;
+            text-anchor: middle;
+            dominant-baseline: central;
+        }
+
+        .houi {
+            font-size: 12px;
+            text-anchor: middle;
+            dominant-baseline: central;
+            fill: #666;
+        }
+
+        .kipou {
+            font-size: 10px;
+            text-anchor: middle;
+            fill: #333;
+        }
+
+        /* 吉凶による色分け */
+        .saidai { fill: #ff4444; }    /* 最大吉方 */
+        .kichi { fill: #ffaaaa; }     /* 吉方 */
+        .kyou { fill: #dddddd; }      /* 凶方 */
+        .normal { fill: #f8f8f8; }    /* 普通 */
+
+        .legend {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>九星気学方位盤 (D3.js版)</h1>
+            <div class="meta-info">
+                <div>生年月日: 1982年10月12日男性</div>
+                <div>鑑定日: 2025年9月24日（現在）</div>
+                <div>本命星: 九紫火星 | 月命星: 六白金星</div>
+            </div>
+        </div>
+
+        <div class="hoiban-row">
+            <div class="hoiban-section">
+                <div class="ban-title">年盤（2025年）</div>
+                <svg id="yearBan" width="400" height="400"></svg>
+                <div class="legend">赤:最大吉方 薄赤:吉方 グレー:凶方</div>
+            </div>
+
+            <div class="hoiban-section">
+                <div class="ban-title">月盤（9月）</div>
+                <svg id="monthBan" width="400" height="400"></svg>
+                <div class="legend">赤:最大吉方 薄赤:吉方 グレー:凶方</div>
+            </div>
+
+            <div class="hoiban-section">
+                <div class="ban-title">日盤（24日）</div>
+                <svg id="dayBan" width="400" height="400"></svg>
+                <div class="legend">赤:最大吉方 薄赤:吉方 グレー:凶方</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="hoiban.js"></script>
+    <script>
+        // Canvas.tsのロジックを参考にD3.js実装
+        const TO_RADIAN = 2 * Math.PI / 360;
+
+        // Canvas.ts:35の角度設定
+        const POINT_RADIANS = [285, 255, 195, 165, 105, 75, 15, 345];
+
+        // Canvas.ts:37-46のテキスト配置
+        const BAN_TEXT_SRCS = [
+            { deg: 270, addX: -0.5, addY: 0.5 },
+            { deg: (270 + 180) / 2, addX: -0.5, addY: 0.25 },
+            { deg: 180, addX: -0.75, addY: 0.25 },
+            { deg: (180 + 90) / 2, addX: -0.5, addY: 0 },
+            { deg: 90, addX: -0.5, addY: 0 },
+            { deg: (90 + 0) / 2, addX: -0.4, addY: 0 },
+            { deg: 0, addX: 0.25, addY: 0.25 },
+            { deg: (360 + 270) / 2, addX: -0.4, addY: 0.25 }
+        ];
+
+        const HOUI_TEXTS = ["北", "東北", "東", "東南", "南", "西南", "西", "西北"];
+
+        function createD3Hoiban(svgId, banData) {
+            const svg = d3.select(`#${svgId}`);
+            const width = 400;
+            const height = 400;
+            const center = { x: width / 2, y: height / 2 };
+            const outerSize = width * 0.32;
+            const innerSize = width * 0.12;
+
+            svg.selectAll('*').remove();
+
+            // 外側・内側の点計算
+            const outerPoints = [];
+            const innerPoints = [];
+            POINT_RADIANS.forEach((deg) => {
+                outerPoints.push({
+                    x: outerSize * Math.cos(deg * TO_RADIAN) + center.x,
+                    y: -outerSize * Math.sin(deg * TO_RADIAN) + center.y
+                });
+
+                innerPoints.push({
+                    x: innerSize * Math.cos(deg * TO_RADIAN) + center.x,
+                    y: -innerSize * Math.sin(deg * TO_RADIAN) + center.y
+                });
+            });
+
+            // 八角形のセグメント描画
+            for (let i = 0; i < 8; i++) {
+                const begin = outerPoints[i];
+                const end = outerPoints[(i + 1) % outerPoints.length];
+                const innerBegin = innerPoints[i];
+                const innerEnd = innerPoints[(i + 1) % innerPoints.length];
+
+                // セグメントパス
+                const pathData = [center, begin, end];
+                const line = d3.line()
+                    .x(d => d.x)
+                    .y(d => d.y);
+
+                // 吉凶による色設定
+                const kipous = banData.detailedKipous[i] || [];
+                let className = 'normal';
+
+                if (kipous.some(k => k.name === '最大吉方')) {
+                    className = 'saidai';
+                } else if (kipous.some(k => k.type === '吉')) {
+                    className = 'kichi';
+                } else if (kipous.some(k => k.type === '凶')) {
+                    className = 'kyou';
+                }
+
+                // セグメント描画
+                svg.append("path")
+                    .datum(pathData)
+                    .attr("class", className)
+                    .attr("d", d => line(d) + "Z")
+                    .attr("stroke", "#333")
+                    .attr("stroke-width", 1);
+            }
+
+            // 外枠・内枠描画
+            const line = d3.line()
+                .x(d => d.x)
+                .y(d => d.y);
+
+            svg.append("path")
+                .datum(outerPoints)
+                .attr("class", "border")
+                .attr("d", d => line(d) + "Z");
+
+            svg.append("path")
+                .datum(innerPoints)
+                .attr("class", "border")
+                .attr("d", d => line(d) + "Z");
+
+            // 分割線
+            for (let i = 0; i < 8; i++) {
+                svg.append("line")
+                    .attr("class", "border")
+                    .attr("x1", outerPoints[i].x)
+                    .attr("y1", outerPoints[i].y)
+                    .attr("x2", innerPoints[i].x)
+                    .attr("y2", innerPoints[i].y);
+            }
+
+            // 中央円
+            svg.append("circle")
+                .attr("cx", center.x)
+                .attr("cy", center.y)
+                .attr("r", innerSize)
+                .attr("fill", "white")
+                .attr("stroke", "#333")
+                .attr("stroke-width", 2);
+
+            // 中央テキスト
+            svg.append("text")
+                .attr("class", "ban")
+                .attr("x", center.x)
+                .attr("y", center.y)
+                .text(banData.center);
+
+            // 九星番号テキスト（セグメント中心）
+            BAN_TEXT_SRCS.forEach((src, i) => {
+                const textSize = width * 0.22;
+                const x = textSize * Math.cos(src.deg * TO_RADIAN) + center.x;
+                const y = -textSize * Math.sin(src.deg * TO_RADIAN) + center.y;
+
+                svg.append("text")
+                    .attr("class", "ban")
+                    .attr("x", x)
+                    .attr("y", y)
+                    .attr("font-size", "32px")
+                    .attr("font-weight", "bold")
+                    .text(banData.kiban[i]);
+            });
+
+            // 方位名テキスト（外側）
+            const houiPositions = [
+                { deg: 270, name: "北" },      // 0
+                { deg: 315, name: "東北" },    // 1
+                { deg: 0, name: "東" },        // 2
+                { deg: 45, name: "東南" },     // 3
+                { deg: 90, name: "南" },       // 4
+                { deg: 135, name: "西南" },    // 5
+                { deg: 180, name: "西" },      // 6
+                { deg: 225, name: "西北" }     // 7
+            ];
+
+            houiPositions.forEach((pos, i) => {
+                const houiTextSize = outerSize + 35;
+                const x = houiTextSize * Math.cos(pos.deg * TO_RADIAN) + center.x;
+                const y = -houiTextSize * Math.sin(pos.deg * TO_RADIAN) + center.y;
+
+                svg.append("text")
+                    .attr("class", "houi")
+                    .attr("x", x)
+                    .attr("y", y)
+                    .attr("font-size", "14px")
+                    .attr("font-weight", "bold")
+                    .text(pos.name);
+            });
+
+            // 吉凶テキスト（外側に配置）
+            BAN_TEXT_SRCS.forEach((src, i) => {
+                const kipous = banData.detailedKipous[i] || [];
+                if (kipous.length === 0) return;
+
+                // 最重要な吉凶のみ表示
+                let mainKipou = null;
+                if (kipous.some(k => k.name === '最大吉方')) {
+                    mainKipou = { name: '最大吉方', color: '#ff0000' };
+                } else if (kipous.some(k => k.name === '五黄殺')) {
+                    mainKipou = { name: '五黄殺', color: '#333' };
+                } else if (kipous.some(k => k.name === '暗剣殺')) {
+                    mainKipou = { name: '暗剣殺', color: '#333' };
+                } else if (kipous.some(k => k.type === '吉')) {
+                    const kichiKipou = kipous.find(k => k.type === '吉');
+                    mainKipou = { name: kichiKipou.name.substring(0, 2), color: '#ff6666' };
+                } else if (kipous.some(k => k.type === '凶')) {
+                    const kyouKipou = kipous.find(k => k.type === '凶');
+                    mainKipou = { name: kyouKipou.name.substring(0, 2), color: '#333' };
+                }
+
+                if (mainKipou) {
+                    const labelSize = outerSize + 60;
+                    const x = labelSize * Math.cos(src.deg * TO_RADIAN) + center.x;
+                    const y = -labelSize * Math.sin(src.deg * TO_RADIAN) + center.y;
+
+                    svg.append("text")
+                        .attr("class", "kipou")
+                        .attr("x", x)
+                        .attr("y", y)
+                        .attr("font-size", "11px")
+                        .attr("font-weight", "bold")
+                        .attr("fill", mainKipou.color)
+                        .text(mainKipou.name);
+                }
+            });
+        }
+
+        // データ生成と描画
+        const calculator = new HoibanCalculator();
+        const birthData = calculator.generateHoiban(1982, 10, 12);
+        const currentData = calculator.generateHoibanForPerson(2025, 9, 24,
+            birthData.meta.yearQsei.index, birthData.meta.monthQsei.index);
+
+        createD3Hoiban('yearBan', currentData.yearBan);
+        createD3Hoiban('monthBan', currentData.monthBan);
+        createD3Hoiban('dayBan', currentData.dayBan);
+    </script>
+</body>
+</html>

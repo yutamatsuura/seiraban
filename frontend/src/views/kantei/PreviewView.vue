@@ -9,14 +9,34 @@
       <p v-if="diagnosis" class="diagnosis-datetime">鑑定日時: {{ formatDateTime(diagnosis.created_at) }}</p>
 
       <div class="action-buttons">
+        <!-- 新しいダウンロードボタン -->
         <button
-          @click="generatePDF"
-          :disabled="pdfGenerating || !diagnosis || (diagnosis.status !== 'completed' && diagnosis.status !== 'partial')"
+          @click="downloadFile('pdf')"
+          :disabled="downloadGenerating || !diagnosis || (diagnosis.status !== 'completed' && diagnosis.status !== 'partial')"
           class="btn btn-primary"
         >
-          <span v-if="pdfGenerating">PDF出力中...</span>
+          <span v-if="downloadGenerating === 'pdf'">PDF出力中...</span>
           <span v-else>PDF出力</span>
         </button>
+        <button
+          @click="downloadFile('docx')"
+          :disabled="downloadGenerating || !diagnosis || (diagnosis.status !== 'completed' && diagnosis.status !== 'partial')"
+          class="btn btn-primary"
+        >
+          <span v-if="downloadGenerating === 'docx'">Word出力中...</span>
+          <span v-else>Word出力</span>
+        </button>
+
+        <!-- テンプレート設定ボタン -->
+        <button
+          @click="toggleTemplatePanel"
+          class="btn btn-template"
+          :class="{ active: showTemplatePanel }"
+          :disabled="!diagnosis || (diagnosis.status !== 'completed' && diagnosis.status !== 'partial')"
+        >
+          デザイン設定
+        </button>
+
         <button
           @click="toggleAdminMode"
           class="btn btn-admin"
@@ -425,6 +445,149 @@
         </div>
       </div>
 
+      <!-- 鑑定士コメント入力セクション -->
+      <div v-if="diagnosis && (diagnosis.status === 'completed' || diagnosis.status === 'partial')" class="card appraiser-comment-section">
+        <div class="card-header">
+          <h2>鑑定士コメント</h2>
+          <p>お客様への追加メッセージ（2-3行、任意）</p>
+        </div>
+        <div class="card-body">
+          <textarea
+            v-model="appraiserComment"
+            class="appraiser-comment-input"
+            placeholder="お客様へのメッセージを入力してください（2-3行程度）&#10;例：この鑑定結果は非常に興味深いものです。&#10;お客様の運勢について詳細に分析いたしました。"
+            rows="3"
+            maxlength="500"
+          ></textarea>
+          <div class="comment-actions">
+            <button
+              @click="updateAppraiserComment"
+              :disabled="commentUpdating"
+              class="btn btn-primary"
+            >
+              {{ commentUpdating ? '保存中...' : 'コメントを保存' }}
+            </button>
+            <div class="char-count">{{ appraiserComment.length }}/500</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- テンプレート設定パネル -->
+      <div v-if="showTemplatePanel" class="card template-panel">
+        <div class="card-header">
+          <h2>デザイン設定</h2>
+          <p>鑑定書のデザインとブランディングを設定します</p>
+        </div>
+
+        <!-- エラー・成功メッセージ -->
+        <div v-if="templateError" class="alert alert-error">
+          {{ templateError }}
+        </div>
+        <div v-if="templateSuccess" class="alert alert-success">
+          {{ templateSuccess }}
+        </div>
+
+        <div class="card-body">
+          <div v-if="templateLoading" class="loading">
+            設定を読み込み中...
+          </div>
+
+          <div v-else class="template-form">
+            <div class="form-group">
+              <label for="business_name">事業者名 *</label>
+              <input
+                id="business_name"
+                v-model="templateForm.business_name"
+                type="text"
+                placeholder="占いサロン 星花"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="operator_name">鑑定士名 *</label>
+              <input
+                id="operator_name"
+                v-model="templateForm.operator_name"
+                type="text"
+                placeholder="星野 花子"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="color_theme">カラーテーマ</label>
+              <select id="color_theme" v-model="templateForm.color_theme" @change="applyTemplateChanges">
+                <option value="default">デフォルト</option>
+                <option value="elegant">エレガント</option>
+                <option value="warm">ウォーム</option>
+                <option value="natural">ナチュラル</option>
+                <option value="professional">プロフェッショナル</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="font_family">フォントファミリー</label>
+              <select id="font_family" v-model="templateForm.font_family" @change="applyTemplateChanges">
+                <option value="default">デフォルト</option>
+                <option value="noto-serif">Noto Serif JP</option>
+                <option value="noto-sans">Noto Sans JP</option>
+                <option value="mincho">明朝体</option>
+                <option value="gothic">ゴシック体</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="layout_style">レイアウトスタイル</label>
+              <select id="layout_style" v-model="templateForm.layout_style" @change="applyTemplateChanges">
+                <option value="standard">スタンダード</option>
+                <option value="compact">コンパクト</option>
+                <option value="detailed">詳細</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="custom_css">カスタムCSS（任意）</label>
+              <textarea
+                id="custom_css"
+                v-model="templateForm.custom_css"
+                rows="4"
+                placeholder="/* カスタムCSSを入力 */&#10;.diagnosis-title { color: #333; }"
+                @input="applyTemplateChanges"
+              ></textarea>
+            </div>
+
+            <div class="form-actions">
+              <button
+                type="button"
+                @click="saveTemplateSettings"
+                :disabled="templateSaving || !isTemplateFormValid"
+                class="btn btn-primary"
+              >
+                {{ templateSaving ? '保存中...' : '設定を保存' }}
+              </button>
+
+              <button
+                type="button"
+                @click="loadTemplateSettings"
+                :disabled="templateLoading"
+                class="btn btn-secondary"
+              >
+                設定を再読み込み
+              </button>
+
+              <button
+                type="button"
+                @click="resetTemplateToDefault"
+                class="btn btn-outline"
+              >
+                デフォルトにリセット
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
 
     <!-- No Data State -->
@@ -451,13 +614,28 @@ const diagnosis = ref<DiagnosisResult | null>(null)
 const loading = ref(false)
 const error = ref<string | null>(null)
 const pdfGenerating = ref(false)
+const downloadGenerating = ref<string | null>(null) // 'pdf' | 'docx' | null
 const autoRefreshTimer = ref<number | null>(null)
 const stepProgress = ref(0)
 const adminMode = ref(false)
+const showTemplatePanel = ref(false)
+const appraiserComment = ref('')
+const commentUpdating = ref(false)
 
 // テンプレート設定
 const templateSettings = ref<TemplateSettings | null>(null)
 const templateLoading = ref(false)
+const templateSaving = ref(false)
+const templateError = ref('')
+const templateSuccess = ref('')
+const templateForm = ref({
+  business_name: '',
+  operator_name: '',
+  color_theme: 'default',
+  font_family: 'default',
+  layout_style: 'standard',
+  custom_css: ''
+})
 
 // シンプルなローディング用の変数
 const remainingSeconds = ref(60)
@@ -495,6 +673,12 @@ const currentProcessDetail = computed(() => processDetails[currentFunFactIndex.v
 
 const diagnosisId = computed(() => route.params.id as string)
 
+// テンプレートフォームのバリデーション
+const isTemplateFormValid = computed(() => {
+  return templateForm.value.business_name.trim() !== '' &&
+         templateForm.value.operator_name.trim() !== ''
+})
+
 const loadDiagnosis = async () => {
   if (!diagnosisId.value) {
     error.value = '鑑定IDが指定されていません'
@@ -520,6 +704,9 @@ const loadDiagnosis = async () => {
     })
     diagnosis.value = result
 
+    // 鑑定士コメントを初期化
+    appraiserComment.value = result.appraiser_comment || ''
+
     // ステップ進行状況を更新
     updateStepProgress(result)
   } catch (err: any) {
@@ -536,14 +723,30 @@ const loadDiagnosis = async () => {
 // テンプレート設定読み込み
 const loadTemplateSettings = async () => {
   templateLoading.value = true
+  templateError.value = ''
+  templateSuccess.value = ''
   console.log('🔧 テンプレート設定読み込み開始')
+
   try {
     const settings = await apiClient.getTemplateSettings()
     console.log('✅ テンプレート設定読み込み成功:', settings)
     templateSettings.value = settings
+
+    // フォームデータに反映
+    templateForm.value = {
+      business_name: settings.business_name || '',
+      operator_name: settings.operator_name || '',
+      color_theme: settings.color_theme || 'default',
+      font_family: settings.font_family || 'default',
+      layout_style: settings.layout_style || 'standard',
+      custom_css: settings.custom_css || ''
+    }
+
+    templateSuccess.value = '設定を読み込みました'
+    setTimeout(() => templateSuccess.value = '', 3000)
   } catch (err: any) {
     console.error('❌ テンプレート設定読み込み失敗:', err)
-    // テンプレート設定の読み込み失敗はサイレントにする
+    templateError.value = err.message || '設定の読み込みに失敗しました'
   } finally {
     templateLoading.value = false
   }
@@ -601,6 +804,199 @@ const toggleAdminMode = async () => {
 
 const backToForm = () => {
   router.push('/kantei/new')
+}
+
+// 新しいダウンロード機能
+const downloadFile = async (format: 'pdf' | 'docx') => {
+  if (!diagnosis.value) return
+
+  downloadGenerating.value = format
+  try {
+    console.log(`${format.toUpperCase()} ダウンロード開始:`, diagnosis.value.id)
+
+    const response = await fetch(`http://localhost:8503/api/diagnosis/${diagnosis.value.id}/download/${format}`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+      }
+    })
+
+    if (!response.ok) {
+      throw new Error(`${format.toUpperCase()}生成に失敗しました`)
+    }
+
+    // ファイルをダウンロード
+    const blob = await response.blob()
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.style.display = 'none'
+    a.href = url
+
+    // ファイル名を取得（Content-Dispositionヘッダーから）
+    const disposition = response.headers.get('content-disposition')
+    let filename = `鑑定書.${format}`
+    if (disposition && disposition.includes('filename=')) {
+      const filenameMatch = disposition.match(/filename\*?=([^;]+)/)
+      if (filenameMatch) {
+        filename = decodeURIComponent(filenameMatch[1].replace(/['"]/g, ''))
+      }
+    }
+
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    window.URL.revokeObjectURL(url)
+    document.body.removeChild(a)
+
+    console.log(`${format.toUpperCase()} ダウンロード完了`)
+  } catch (err: any) {
+    console.error(`${format.toUpperCase()} ダウンロードエラー:`, err)
+    alert(`${format.toUpperCase()}ダウンロードに失敗しました: ${err.message}`)
+  } finally {
+    downloadGenerating.value = null
+  }
+}
+
+// テンプレートパネルの切り替え
+const toggleTemplatePanel = () => {
+  showTemplatePanel.value = !showTemplatePanel.value
+}
+
+// 鑑定士コメント更新
+const updateAppraiserComment = async () => {
+  if (!diagnosis.value) return
+
+  commentUpdating.value = true
+  try {
+    const response = await fetch(`http://localhost:8503/api/diagnosis/${diagnosis.value.id}/comment`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+      },
+      body: JSON.stringify({ comment: appraiserComment.value.trim() })
+    })
+
+    if (!response.ok) {
+      throw new Error('コメントの保存に失敗しました')
+    }
+
+    const result = await response.json()
+    console.log('鑑定士コメント更新成功:', result)
+
+    // 診断データを更新
+    if (diagnosis.value) {
+      diagnosis.value.appraiser_comment = appraiserComment.value.trim()
+    }
+
+    alert('コメントを保存しました')
+  } catch (err: any) {
+    console.error('鑑定士コメント更新エラー:', err)
+    alert('コメントの保存に失敗しました: ' + err.message)
+  } finally {
+    commentUpdating.value = false
+  }
+}
+
+// テンプレート設定保存
+const saveTemplateSettings = async () => {
+  if (!isTemplateFormValid.value || templateSaving.value) return
+
+  templateSaving.value = true
+  templateError.value = ''
+  templateSuccess.value = ''
+
+  try {
+    const updateData = {
+      business_name: templateForm.value.business_name.trim(),
+      operator_name: templateForm.value.operator_name.trim(),
+      color_theme: templateForm.value.color_theme,
+      font_family: templateForm.value.font_family,
+      layout_style: templateForm.value.layout_style,
+      custom_css: templateForm.value.custom_css.trim() || undefined
+    }
+
+    const result = await apiClient.updateTemplateSettings(updateData)
+    templateSettings.value = result
+    templateSuccess.value = '設定を保存しました'
+    setTimeout(() => templateSuccess.value = '', 3000)
+
+    console.log('テンプレート設定保存完了:', result)
+  } catch (err: any) {
+    templateError.value = err.message || '設定の保存に失敗しました'
+    console.error('テンプレート設定保存エラー:', err)
+  } finally {
+    templateSaving.value = false
+  }
+}
+
+// リアルタイムでテンプレート変更を適用
+const applyTemplateChanges = () => {
+  console.log('🎨 リアルタイムテンプレート変更適用:', templateForm.value)
+
+  // カラーテーマの適用
+  const root = document.documentElement
+  switch (templateForm.value.color_theme) {
+    case 'elegant':
+      root.style.setProperty('--primary-color', '#6b46c1')
+      root.style.setProperty('--accent-color', '#d8b4fe')
+      break
+    case 'warm':
+      root.style.setProperty('--primary-color', '#dc2626')
+      root.style.setProperty('--accent-color', '#fecaca')
+      break
+    case 'natural':
+      root.style.setProperty('--primary-color', '#059669')
+      root.style.setProperty('--accent-color', '#a7f3d0')
+      break
+    case 'professional':
+      root.style.setProperty('--primary-color', '#1f2937')
+      root.style.setProperty('--accent-color', '#e5e7eb')
+      break
+    default:
+      root.style.setProperty('--primary-color', '#2563eb')
+      root.style.setProperty('--accent-color', '#93c5fd')
+  }
+
+  // フォントファミリーの適用
+  const bodyElement = document.body
+  switch (templateForm.value.font_family) {
+    case 'noto-serif':
+      bodyElement.style.fontFamily = '"Noto Serif JP", serif'
+      break
+    case 'noto-sans':
+      bodyElement.style.fontFamily = '"Noto Sans JP", sans-serif'
+      break
+    case 'mincho':
+      bodyElement.style.fontFamily = '"游明朝", "Yu Mincho", "Hiragino Mincho Pro", serif'
+      break
+    case 'gothic':
+      bodyElement.style.fontFamily = '"游ゴシック", "Yu Gothic", "Hiragino Kaku Gothic Pro", sans-serif'
+      break
+    default:
+      bodyElement.style.fontFamily = ''
+  }
+
+  // カスタムCSSの適用
+  let customStyleElement = document.getElementById('template-custom-css')
+  if (!customStyleElement) {
+    customStyleElement = document.createElement('style')
+    customStyleElement.id = 'template-custom-css'
+    document.head.appendChild(customStyleElement)
+  }
+  customStyleElement.textContent = templateForm.value.custom_css
+}
+
+// デフォルト設定にリセット
+const resetTemplateToDefault = () => {
+  templateForm.value = {
+    business_name: '',
+    operator_name: '',
+    color_theme: 'default',
+    font_family: 'default',
+    layout_style: 'standard',
+    custom_css: ''
+  }
+  applyTemplateChanges()
 }
 
 const formatDate = (dateString?: string) => {
@@ -1265,6 +1661,188 @@ onUnmounted(() => {
   }
 }
 
+/* 鑑定士コメント入力セクションのスタイル */
+.appraiser-comment-section {
+  .card-header {
+    p {
+      margin: 8px 0 0;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+  }
+
+  .appraiser-comment-input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 14px;
+    line-height: 1.5;
+    resize: vertical;
+    font-family: inherit;
+
+    &:focus {
+      outline: none;
+      border-color: var(--primary-main);
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+    }
+
+    &::placeholder {
+      color: #aaa;
+    }
+  }
+
+  .comment-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+
+    .btn {
+      min-width: 120px;
+    }
+
+    .char-count {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+  }
+}
+
+/* テンプレート設定パネルのスタイル */
+.template-panel {
+  .card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+
+    h2 {
+      color: white;
+      margin: 0 0 8px;
+    }
+
+    p {
+      margin: 0;
+      opacity: 0.9;
+    }
+  }
+
+  .alert {
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    font-size: 14px;
+  }
+
+  .alert-error {
+    background-color: #fee;
+    border: 1px solid #fcc;
+    color: #c33;
+  }
+
+  .alert-success {
+    background-color: #efe;
+    border: 1px solid #cfc;
+    color: #363;
+  }
+
+  .loading {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+    font-size: 16px;
+  }
+
+  .template-form {
+    .form-group {
+      margin-bottom: 20px;
+
+      label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 600;
+        color: #374151;
+        font-size: 14px;
+      }
+
+      input, select, textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 14px;
+        transition: border-color 0.2s, box-shadow 0.2s;
+
+        &:focus {
+          outline: none;
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+      }
+
+      textarea {
+        resize: vertical;
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        font-size: 13px;
+        line-height: 1.4;
+      }
+
+      select {
+        cursor: pointer;
+      }
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+
+      .btn {
+        padding: 12px 20px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+
+        &.btn-primary {
+          background: #3b82f6;
+          color: white;
+
+          &:hover:not(:disabled) {
+            background: #2563eb;
+          }
+
+          &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+          }
+        }
+
+        &.btn-secondary {
+          background: #6b7280;
+          color: white;
+
+          &:hover:not(:disabled) {
+            background: #4b5563;
+          }
+        }
+
+        &.btn-outline {
+          background: transparent;
+          color: #6b7280;
+          border: 1px solid #d1d5db;
+
+          &:hover {
+            background: #f3f4f6;
+            border-color: #9ca3af;
+          }
+        }
+      }
+    }
+  }
+}
 
 .progress-bar-container {
   margin: 20px 0 30px;

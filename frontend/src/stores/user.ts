@@ -45,7 +45,7 @@ interface RegistrationResponse {
 }
 
 // API ベース URL
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8502'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8503'
 
 // Axios インスタンス作成
 const api = axios.create({

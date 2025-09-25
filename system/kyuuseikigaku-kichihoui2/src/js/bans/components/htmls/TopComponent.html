@@ -1,0 +1,47 @@
+<div align='center'>
+    <table border='0'>
+        <tr>
+            <td>
+                生年月日
+            </td>
+            <td>
+                <select v-model='selectYear'>
+                    <option v-for='year in years'>
+                        {{year}}
+                    </option>
+                </select>
+                <select v-model='selectMonth'>
+                    <option v-for='month in months'>
+                        {{month}}
+                    </option>
+                </select>
+                <select v-model='selectDay'>
+                    <option v-for='day in days'>
+                        {{day}}
+                    </option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                性別
+            </td>
+            <td>
+                <select v-model='selectSex'>
+                    <option v-for='sex in sexs'>
+                        {{sex}}
+                    </option>
+                </select>
+            </td>
+        </tr>
+    </table>
+    <div>
+        <span class='button beju' @click='submitBirthday'>
+            <a href='#'>九星を調べる</a>
+        </span>
+
+        <span class='button beju' @click='submitKipou'>
+                <a href='#'>吉方位を調べる</a>
+        </span>
+    </div>
+</div>

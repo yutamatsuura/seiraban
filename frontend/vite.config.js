@@ -7,7 +7,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 export default {
   plugins: [vue()],
   server: {
-    port: 3003,
+    port: 3005,
     host: '0.0.0.0'
   },
   resolve: {

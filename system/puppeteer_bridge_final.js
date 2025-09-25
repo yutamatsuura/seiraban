@@ -79,7 +79,7 @@ async function executeKyuseiFinal(inputData) {
         const sex = gender === 'female' ? '女' : '男';
 
         // ステップ1: トップページアクセス
-        await page.goto('http://localhost:3001/ban_top_full.html', {
+        await page.goto('http://localhost:3006/ban_top_full.html', {
             waitUntil: 'networkidle2',
             timeout: 10000
         });
@@ -311,7 +311,7 @@ async function executeSeimeiFinal(inputData) {
         const mei = nameParts[1] || '';
 
         // ステップ1: URLパラメータ付きで姓名判断ページに直接アクセス
-        const url = `http://localhost:3002/seimei.html?sei=${encodeURIComponent(sei)}&mei=${encodeURIComponent(mei)}`;
+        const url = `http://localhost:3007/seimei.html?sei=${encodeURIComponent(sei)}&mei=${encodeURIComponent(mei)}`;
         await page.goto(url, {
             waitUntil: 'networkidle2',
             timeout: 60000

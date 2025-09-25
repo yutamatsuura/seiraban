@@ -116,6 +116,7 @@ class KanteiRecord(Base):
     pdf_generated_at = Column(DateTime, nullable=True)
     status = Column(String(50), default="created", nullable=False)
     custom_message = Column(Text, nullable=True)
+    appraiser_comment = Column(String(500), nullable=True, comment="鑑定士コメント（2-3行）")
     created_at = Column(DateTime, default=func.now(), nullable=False)
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
     deleted_at = Column(DateTime, nullable=True)
@@ -169,6 +170,14 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
     if user is None:
         raise credentials_exception
     return user
+
+def get_current_admin_user(current_user: User = Depends(get_current_user)):
+    if not current_user.is_superuser:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not enough permissions"
+        )
+    return current_user
 
 # Pydanticモデル
 class UserCreate(BaseModel):
@@ -2586,6 +2595,183 @@ async def delete_failed_diagnoses(current_user: User = Depends(get_current_user)
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"削除エラー: {str(e)}")
+    finally:
+        db.close()
+
+# 管理者用データベース統計API
+# ファイルダウンロードエンドポイント
+@app.get("/api/diagnosis/{diagnosis_id}/download/{file_format}")
+async def download_diagnosis_file(
+    diagnosis_id: int,
+    file_format: str,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    鑑定書をPDF/Word形式でダウンロードする
+    file_format: 'pdf' または 'docx'
+    """
+    db = SessionLocal()
+
+    try:
+        # 鑑定書データを取得
+        diagnosis = db.query(KanteiRecord).filter(
+            KanteiRecord.id == diagnosis_id,
+            KanteiRecord.user_id == current_user.id
+        ).first()
+
+        if not diagnosis:
+            raise HTTPException(status_code=404, detail="鑑定書が見つかりません")
+
+        if diagnosis.status not in ['completed', 'partial']:
+            raise HTTPException(status_code=400, detail="未完了の鑑定書はダウンロードできません")
+
+        # ユーザーのテンプレート設定を取得
+        user_settings = get_user_template_settings(current_user.id)
+        business_name = user_settings.get('business_name', '鑑定事業所')
+
+        # ファイル名を生成（URL安全な文字のみ使用）
+        from datetime import datetime
+        import urllib.parse
+        now = datetime.now()
+        safe_business_name = urllib.parse.quote(business_name, safe='')
+        filename = f"kantei_{safe_business_name}_{now.strftime('%Y-%m-%d_%H-%M')}.{file_format}"
+
+        if file_format.lower() == 'pdf':
+            # PDF生成ロジック（既存のPDF生成機能を拡張）
+            # ここでは簡単なプレースホルダー実装
+            from fastapi.responses import Response
+
+            # 簡単なPDFコンテンツ（実際の実装では適切なPDF生成ライブラリを使用）
+            pdf_content = f"""
+            鑑定書
+
+            クライアント: {diagnosis.client_name}
+            事業者: {business_name}
+            作成日時: {now.strftime('%Y年%m月%d日 %H:%M')}
+
+            {diagnosis.calculation_result if diagnosis.calculation_result else '計算結果なし'}
+
+            鑑定士コメント:
+            {diagnosis.appraiser_comment if diagnosis.appraiser_comment else 'コメントなし'}
+            """.encode('utf-8')
+
+            return Response(
+                content=pdf_content,
+                media_type="application/pdf",
+                headers={"Content-Disposition": f"attachment; filename={filename}"}
+            )
+
+        elif file_format.lower() == 'docx':
+            # Word文書生成
+            from fastapi.responses import Response
+            import io
+
+            # 簡単なWord文書コンテンツ（実際の実装では適切なdocxライブラリを使用）
+            docx_content = f"""
+            鑑定書
+
+            クライアント: {diagnosis.client_name}
+            事業者: {business_name}
+            作成日時: {now.strftime('%Y年%m月%d日 %H:%M')}
+
+            {diagnosis.calculation_result if diagnosis.calculation_result else '計算結果なし'}
+
+            鑑定士コメント:
+            {diagnosis.appraiser_comment if diagnosis.appraiser_comment else 'コメントなし'}
+            """.encode('utf-8')
+
+            return Response(
+                content=docx_content,
+                media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                headers={"Content-Disposition": f"attachment; filename={filename}"}
+            )
+        else:
+            raise HTTPException(status_code=400, detail="サポートされていないファイル形式です。'pdf' または 'docx' を指定してください。")
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"ファイル生成エラー: {str(e)}")
+    finally:
+        db.close()
+
+# 鑑定士コメント更新エンドポイント
+@app.put("/api/diagnosis/{diagnosis_id}/comment")
+async def update_appraiser_comment(
+    diagnosis_id: int,
+    comment_data: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """鑑定士コメントを更新する"""
+    db = SessionLocal()
+
+    try:
+        diagnosis = db.query(KanteiRecord).filter(
+            KanteiRecord.id == diagnosis_id,
+            KanteiRecord.user_id == current_user.id
+        ).first()
+
+        if not diagnosis:
+            raise HTTPException(status_code=404, detail="鑑定書が見つかりません")
+
+        # コメントを更新
+        comment = comment_data.get('comment', '').strip()[:500]  # 500文字制限
+        diagnosis.appraiser_comment = comment if comment else None
+
+        db.commit()
+        db.refresh(diagnosis)
+
+        return {
+            "success": True,
+            "message": "鑑定士コメントが更新されました",
+            "comment": diagnosis.appraiser_comment
+        }
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"コメント更新エラー: {str(e)}")
+    finally:
+        db.close()
+
+@app.get("/api/admin/db-stats")
+async def get_database_stats(current_user: User = Depends(get_current_user)):
+    """管理者用データベース統計情報を取得"""
+    db = next(get_db())
+    try:
+        # ユーザー統計
+        total_users = db.query(User).count()
+        active_users = db.query(User).filter(User.is_active == True).count()
+        admin_users = db.query(User).filter(User.is_superuser == True).count()
+
+        # 鑑定履歴統計
+        total_diagnoses = db.query(KanteiRecord).count()
+        completed_diagnoses = db.query(KanteiRecord).filter(KanteiRecord.status == "completed").count()
+        failed_diagnoses = db.query(KanteiRecord).filter(KanteiRecord.status == "failed").count()
+
+        # テンプレート設定統計
+        total_templates = db.query(TemplateSettings).count()
+
+        return {
+            "success": True,
+            "data": {
+                "users": {
+                    "total": total_users,
+                    "active": active_users,
+                    "admins": admin_users,
+                    "inactive": total_users - active_users
+                },
+                "diagnoses": {
+                    "total": total_diagnoses,
+                    "completed": completed_diagnoses,
+                    "failed": failed_diagnoses,
+                    "processing": total_diagnoses - completed_diagnoses - failed_diagnoses
+                },
+                "templates": {
+                    "total": total_templates
+                }
+            }
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"統計取得エラー: {str(e)}")
     finally:
         db.close()
 

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>既存システム方位盤表示</title>
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .section {
+            display: flex;
+            margin-bottom: 40px;
+        }
+        .left-panel {
+            flex: 1;
+            margin-right: 20px;
+        }
+        .right-panel {
+            flex: 1;
+            margin-left: 20px;
+        }
+        .system-frame {
+            width: 100%;
+            height: 800px;
+            border: 2px solid #007bff;
+            border-radius: 8px;
+            background: white;
+        }
+        .input-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+        .btn-secondary {
+            background: #6c757d;
+        }
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+        .comparison-results {
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .result-item {
+            margin-bottom: 15px;
+            padding: 15px;
+            border-left: 4px solid #007bff;
+            background: #f8f9fa;
+        }
+        .url-display {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            word-break: break-all;
+            margin-top: 10px;
+        }
+        .note {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>既存システム方位盤比較表示</h1>
+
+        <div class="note">
+            <strong>使用方法:</strong>
+            生年月日を入力して「既存システムを表示」ボタンを押すと、右側のフレームに既存システムの結果が表示されます。
+            URLも生成されるので、直接アクセスすることも可能です。
+        </div>
+
+        <div class="section">
+            <div class="left-panel">
+                <div class="input-section">
+                    <h3>📅 生年月日設定</h3>
+                    <div class="input-group">
+                        <label for="birthYear">生年</label>
+                        <input type="number" id="birthYear" value="1982" min="1900" max="2100">
+                    </div>
+                    <div class="input-group">
+                        <label for="birthMonth">生月</label>
+                        <input type="number" id="birthMonth" value="10" min="1" max="12">
+                    </div>
+                    <div class="input-group">
+                        <label for="birthDay">生日</label>
+                        <input type="number" id="birthDay" value="12" min="1" max="31">
+                    </div>
+                    <div class="input-group">
+                        <label for="gender">性別</label>
+                        <select id="gender">
+                            <option value="1">男性</option>
+                            <option value="0">女性</option>
+                        </select>
+                    </div>
+
+                    <button class="btn" onclick="loadExistingSystem()">
+                        🔄 既存システムを表示
+                    </button>
+                    <button class="btn btn-secondary" onclick="openInNewTab()">
+                        🔗 新しいタブで開く
+                    </button>
+                </div>
+
+                <div class="comparison-results">
+                    <h3>📊 システム比較結果</h3>
+                    <div id="comparisonContent">
+                        <p>生年月日を設定して「既存システムを表示」を押してください。</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <h3>🌟 既存システム (kigaku-navi.com)</h3>
+                <iframe id="existingSystemFrame"
+                        class="system-frame"
+                        src="about:blank"
+                        title="既存システム方位盤">
+                </iframe>
+                <div id="urlDisplay" class="url-display" style="display: none;">
+                    <strong>生成されたURL:</strong><br>
+                    <span id="generatedUrl"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function buildExistingSystemUrl() {
+            const year = document.getElementById('birthYear').value;
+            const month = document.getElementById('birthMonth').value;
+            const day = document.getElementById('birthDay').value;
+            const gender = document.getElementById('gender').value;
+
+            // パラメータを検証
+            if (!year || !month || !day) {
+                alert('生年月日を正しく入力してください。');
+                return null;
+            }
+
+            // 既存システムのURL形式に合わせる
+            const baseUrl = 'https://kigaku-navi.com/qsei/ban_kipou.php';
+            const params = new URLSearchParams({
+                'birth_y': year,
+                'birth_m': month.padStart(2, '0'),
+                'birth_d': day.padStart(2, '0'),
+                'sex': gender,
+                'action': 'calc'
+            });
+
+            return `${baseUrl}?${params.toString()}`;
+        }
+
+        function loadExistingSystem() {
+            const url = buildExistingSystemUrl();
+            if (!url) return;
+
+            console.log('既存システムURL:', url);
+
+            // iframeに表示
+            const iframe = document.getElementById('existingSystemFrame');
+            iframe.src = url;
+
+            // URL表示
+            document.getElementById('generatedUrl').textContent = url;
+            document.getElementById('urlDisplay').style.display = 'block';
+
+            // 比較結果を更新
+            updateComparisonResults();
+        }
+
+        function openInNewTab() {
+            const url = buildExistingSystemUrl();
+            if (!url) return;
+
+            window.open(url, '_blank');
+        }
+
+        function updateComparisonResults() {
+            const year = document.getElementById('birthYear').value;
+            const month = document.getElementById('birthMonth').value;
+            const day = document.getElementById('birthDay').value;
+            const gender = document.getElementById('gender').value === '1' ? '男性' : '女性';
+
+            const results = `
+                <div class="result-item">
+                    <strong>🎂 生年月日:</strong> ${year}年${month}月${day}日 (${gender})
+                </div>
+                <div class="result-item">
+                    <strong>🎯 期待する計算結果:</strong><br>
+                    • 本命星: 九紫火星 (9)<br>
+                    • 月命星: 六白金星 (6)<br>
+                    • 日命星: 七赤金星 (7)
+                </div>
+                <div class="result-item">
+                    <strong>📋 確認ポイント:</strong><br>
+                    • 年盤、月盤、日盤の九星配置<br>
+                    • 各方位の吉凶判定<br>
+                    • 最大吉方の方位<br>
+                    • 凶方（五黄殺、暗剣殺など）の位置
+                </div>
+                <div class="result-item">
+                    <strong>⏰ 期間表示:</strong><br>
+                    • 年盤: 2025年 (2025/2/3～2026/2/3)<br>
+                    • 月盤: 9月 (9/7～10/7)<br>
+                    • 日盤: 24日の日盤
+                </div>
+            `;
+
+            document.getElementById('comparisonContent').innerHTML = results;
+        }
+
+        // ページ読み込み時に自動で1982年10月12日を表示
+        window.onload = function() {
+            setTimeout(() => {
+                console.log('自動読み込み開始...');
+                loadExistingSystem();
+            }, 1000);
+        };
+
+        // iframe読み込み完了時のイベント
+        document.getElementById('existingSystemFrame').onload = function() {
+            console.log('既存システムの読み込みが完了しました');
+        };
+    </script>
+</body>
+</html>
