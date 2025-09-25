@@ -22,7 +22,7 @@
 - **PDF/Word出力**: ✅ 完全動作
 - **プレビュー表示**: ✅ 完全動作
 
-## 新システム（kyuuseikigaku-kichihoui2）調査結果
+## 新システム（kyusei-logic-engine）調査結果
 
 ### 💎 発見された完全実装
 - **完全TypeScript実装**: 848KBの完全コンパイル済みJavaScript
@@ -54,7 +54,7 @@
 - [x] システム状況記録
 
 ### Phase 2: ロジック統合
-- [ ] kyuuseikigaku-kichihoui2のロジック抽出
+- [ ] kyusei-logic-engineのロジック抽出
 - [ ] FastAPI エンドポイント作成
 - [ ] Node.js ブリッジ実装
 - [ ] 九星計算API化

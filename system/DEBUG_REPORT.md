@@ -129,7 +129,7 @@ Both fortune-telling systems are now working correctly:
 **Target**: Replace Puppeteer scraping with complete kyusei logic system
 
 ### Complete Logic System Discovered
-- **Location**: `/Users/lennon/projects/inoue4/system/kyuuseikigaku-kichihoui2/`
+- **Location**: `/Users/lennon/projects/inoue4/system/kyusei-logic-engine/`
 - **Size**: 848KB compiled JavaScript with complete implementation
 - **Features**:
   - Full TypeScript implementation with d3.js integration
